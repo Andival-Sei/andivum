@@ -1,0 +1,43 @@
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+*.pfx
+*.p12
+*.jks
+*.keystore
+secrets.json
+
+# Node/pnpm
+node_modules/
+.pnpm-store/
+
+# .NET / Visual Studio
+bin/
+obj/
+.vs/
+TestResults/
+*.user
+*.suo
+
+# Android / IntelliJ
+.gradle/
+.idea/
+local.properties
+captures/
+*.apk
+*.aab
+
+# Local databases and containers
+*.db
+*.db-shm
+*.db-wal
+.containers/
+
+# OS and tooling
+.DS_Store
+Thumbs.db
+*.log
+.vscode/
+!.vscode/extensions.json
+!.vscode/settings.json

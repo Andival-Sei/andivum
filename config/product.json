@@ -1,0 +1,27 @@
+{
+  "$schema": "./product.schema.json",
+  "schemaVersion": 1,
+  "workingName": true,
+  "displayName": "Andivum",
+  "slug": "andivum",
+  "publisher": "Andival-Sei",
+  "defaultLocale": "en-US",
+  "supportedLocales": [
+    "en-US",
+    "ru-RU"
+  ],
+  "theme": {
+    "supported": [
+      "system",
+      "light",
+      "dark"
+    ],
+    "default": "system"
+  },
+  "identifiers": {
+    "dotnetRootNamespace": "Andivum",
+    "androidApplicationId": "io.github.andivalsei.andivum",
+    "apiServiceName": "Andivum.Api",
+    "passkeyRelyingPartyId": null
+  }
+}

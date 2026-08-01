@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://andivum.local/schemas/product.schema.json",
+  "title": "Andivum product configuration",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "workingName",
+    "displayName",
+    "slug",
+    "publisher",
+    "defaultLocale",
+    "supportedLocales",
+    "theme",
+    "identifiers"
+  ],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": 1 },
+    "workingName": { "type": "boolean" },
+    "displayName": { "type": "string", "minLength": 1 },
+    "slug": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+    "publisher": { "type": "string", "minLength": 1 },
+    "defaultLocale": { "type": "string", "minLength": 2 },
+    "supportedLocales": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 2 }
+    },
+    "theme": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["supported", "default"],
+      "properties": {
+        "supported": {
+          "type": "array",
+          "contains": { "const": "system" },
+          "items": { "enum": ["system", "light", "dark"] }
+        },
+        "default": { "enum": ["system", "light", "dark"] }
+      }
+    },
+    "identifiers": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "dotnetRootNamespace",
+        "androidApplicationId",
+        "apiServiceName",
+        "passkeyRelyingPartyId"
+      ],
+      "properties": {
+        "dotnetRootNamespace": { "type": "string", "minLength": 1 },
+        "androidApplicationId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$"
+        },
+        "apiServiceName": { "type": "string", "minLength": 1 },
+        "passkeyRelyingPartyId": {
+          "type": ["string", "null"],
+          "minLength": 1
+        }
+      }
+    }
+  }
+}

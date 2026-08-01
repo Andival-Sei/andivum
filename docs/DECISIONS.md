@@ -1,0 +1,20 @@
+# Журнал архитектурных решений
+
+| ADR                                              | Решение                                  | Статус  |
+| ------------------------------------------------ | ---------------------------------------- | ------- |
+| [0001](adr/0001-native-platform-clients.md)      | Два нативных клиента                     | Принято |
+| [0002](adr/0002-modular-monolith.md)             | Modular monolith backend                 | Принято |
+| [0003](adr/0003-passkey-authentication.md)       | Passkeys через OIDC + PKCE               | Принято |
+| [0004](adr/0004-shared-contracts-not-runtime.md) | Общие контракты вместо общего runtime    | Принято |
+| [0005](adr/0005-product-identity.md)             | Разделение display name и технических ID | Принято |
+| [0006](adr/0006-cli-first-ai-tooling.md)         | CLI-first tooling, MCP как адаптер       | Принято |
+
+## Открытые решения
+
+- production hosting и cloud provider;
+- постоянный домен и passkey Relying Party ID;
+- генератор C#/Kotlin клиентов из OpenAPI;
+- формат и политика полного offline conflict resolution;
+- модель семейных пространств и совместного доступа;
+- лицензия репозитория;
+- финальное название продукта.
