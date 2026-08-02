@@ -1,6 +1,7 @@
 # Email/password authentication vertical slice
 
-- Статус: в работе
+- Статус: реализовано; email verification и recovery требуют отдельного
+  production-среза
 - Дата: 2026-08-02
 - Решение: `docs/adr/0012-email-password-authentication.md`
 
