@@ -22,9 +22,10 @@ Windows и Android. Источник машинно-читаемого конт�
 - Pending-аккаунт не может продолжить `/connect/authorize`, пока attestation не
   сохранит хотя бы один passkey.
 
-Восстановление аккаунта, logout-all-devices и полный нативный UI пока остаются
-следующими срезами. Регистрация сейчас реализована на server-rendered auth
-surface и требует browser/WebAuthn smoke-теста.
+Восстановление аккаунта и logout-all-devices остаются следующими auth-срезами.
+Нативные login/dashboard shells уже реализованы на Windows и Android; сама
+passkey ceremony по-прежнему проходит на server-rendered auth surface через
+системный браузер.
 
 ## Локальный запуск
 
@@ -64,11 +65,12 @@ pnpm android:build -- -PandivumApiBaseUrl=https://localhost:7240
 настройку не получает и не ослабляет проверку сертификатов.
 
 На 2026-08-02 физический Pixel 7 Pro успешно определяется по USB, APK
-устанавливается и UI запускается. `adb reverse` работает, но AppAuth discovery
-останавливается на `Trust anchor for certification path not found`: устройство
-ещё не доверяет локальному dev-сертификату. Trust-all обход для приложения не
-используется; следующий вариант — установить только локальный CA на debug-
-устройство или проверить flow на staging HTTPS.
+устанавливается и UI запускается. После установки локального CA на debug-
+устройство и `adb reverse` AppAuth discovery, passkey registration/sign-in,
+возврат по callback и logout проходят успешно. Trust-all обход для приложения
+не используется. Windows login shell проверен в packaged-приложении; Windows
+Hello ceremony требует ручного подтверждения пользователя и не автоматизируется
+агентом.
 
 Для остановки инфраструктуры:
 

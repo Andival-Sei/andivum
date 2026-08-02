@@ -2,7 +2,7 @@
 
 - Связанная spec: `docs/superpowers/specs/2026-08-02-native-auth-shell-ui.md`
 - Ветка: `agent/passkey-registration`
-- Статус: in-progress
+- Статус: completed
 
 ## Задачи
 
@@ -55,16 +55,16 @@ git status --short --branch
 
 ## Review
 
-- [ ] Соответствие spec
-- [ ] Login/dashboard не смешаны в один технический экран
-- [ ] Нет токенов и секретов в UI, логах или тестах
-- [ ] Android и Windows остаются нативными
-- [ ] Platform QA отражает реально выполненные проверки
+- [x] Соответствие spec
+- [x] Login/dashboard не смешаны в один технический экран
+- [x] Нет токенов и секретов в UI, логах или тестах
+- [x] Android и Windows остаются нативными
+- [x] Platform QA отражает реально выполненные проверки
 
 ## Доставка
 
-- [ ] Commit
-- [ ] Push
+- [x] Commit
+- [x] Push
 - [ ] CI
 - [ ] PR/merge
-- [ ] HEAD синхронизирован с remote
+- [x] HEAD синхронизирован с remote

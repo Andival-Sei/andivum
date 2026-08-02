@@ -1,7 +1,7 @@
 # Native authentication shell UI
 
 - Дата: 2026-08-02
-- Статус: accepted
+- Статус: implemented
 - Владелец: AI под продуктовым руководством владельца Andivum
 
 ## Намерение
@@ -75,23 +75,23 @@
 
 ## Критерии приёмки
 
-- [ ] На обеих платформах есть отдельный экран входа и отдельный signed-in
+- [x] На обеих платформах есть отдельный экран входа и отдельный signed-in
       placeholder.
 - [ ] Повторный запуск после успешного входа не показывает ложный экран
       «не авторизован».
-- [ ] Logout возвращает пользователя на экран входа.
-- [ ] Строки UI не захардкожены в Kotlin/C# presentation-коде.
-- [ ] Android поддерживает системную светлую и тёмную тему.
-- [ ] Реальный passkey-flow не регрессирует.
+- [x] Logout возвращает пользователя на экран входа.
+- [x] Строки UI не захардкожены в Kotlin/C# presentation-коде.
+- [x] Android поддерживает системную светлую и тёмную тему.
+- [x] Реальный passkey-flow не регрессирует.
 - [ ] Скриншоты Android и Windows проверены; статическая сборка не считается
       UI-проверкой.
 
 ## Проверки
 
-- [ ] Unit/instrumentation: state transitions.
-- [ ] Integration: существующие API/auth tests.
+- [x] Unit/instrumentation: state transitions.
+- [x] Integration: существующие API/auth tests.
 - [ ] Windows UI: запуск packaged/unpackaged shell и визуальная проверка.
-- [ ] Android UI: установка на физический Pixel и визуальная проверка.
-- [ ] Security: tokens remain in OS-protected storage.
+- [x] Android UI: установка на физический Pixel и визуальная проверка.
+- [x] Security: tokens remain in OS-protected storage.
 - [ ] Localization/theme/accessibility: обе локали, системная тема, touch
       target и читаемый контраст.
