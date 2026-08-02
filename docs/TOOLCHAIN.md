@@ -52,6 +52,17 @@ Android SDK 34–36.1, AVD `Medium_Phone_API_36.1`, Android Studio с JBR 21,
 - Appium — project-local dependency и отдельный `APPIUM_HOME`;
 - containers — versioned compose-файлы и pinned image tags.
 
+Нативные клиентские проверки запускаются из корня:
+
+```powershell
+pnpm windows:build
+pnpm android:build
+```
+
+Windows-клиент закрепляет Windows App SDK 1.8.x. Android использует AGP 9.0.1,
+Gradle 9.1, Kotlin 2.4.0 и JDK 17+; `tools/scripts/run-android-gradle.ps1`
+подхватывает Android Studio JBR, если системный `JAVA_HOME` не задан.
+
 ## Отложенные инструменты
 
 ### Appium Windows Driver

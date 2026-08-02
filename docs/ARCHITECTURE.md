@@ -64,8 +64,11 @@ domain/use-case слой тестировался без UI.
 
 ### Android
 
-- Kotlin, версия фиксируется в Gradle version catalog;
+- Kotlin 2.4.0 и Gradle 9.1 через version catalog/wrapper;
+- Android Gradle Plugin 9.0.1 и compile/target SDK 36;
 - Jetpack Compose + Material 3;
+- Compose BOM 2026.06.00;
+- AppAuth-Android для OIDC Authorization Code + PKCE;
 - ViewModel, StateFlow и unidirectional data flow;
 - AndroidX Navigation;
 - Room/SQLite;

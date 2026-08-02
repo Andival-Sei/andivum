@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Andivum</string>
+    <string name="sign_in">Войти с passkey</string>
+    <string name="sign_out">Выйти</string>
+    <string name="welcome">Войдите один раз, чтобы пользоваться задачами и финансами на всех устройствах.</string>
+    <string name="not_signed_in">Не авторизован</string>
+</resources>

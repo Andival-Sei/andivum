@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Andivum.Windows (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "Andivum.Windows (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}

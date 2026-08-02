@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Andivum</string>
+    <string name="sign_in">Continue with passkey</string>
+    <string name="sign_out">Sign out</string>
+    <string name="welcome">Sign in once to access your tasks and finances on every device.</string>
+    <string name="not_signed_in">Not signed in</string>
+</resources>
