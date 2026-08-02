@@ -68,13 +68,33 @@ class MainActivity : ComponentActivity() {
         }
 
         authManager.handleCallback(data) { status ->
-            runOnUiThread {
-                val signedIn = authManager.isSignedIn()
-                uiState = uiState.copy(
-                    isSignedIn = signedIn,
-                    isBusy = false,
-                    message = if (signedIn) null else status,
-                )
+            if (!authManager.isSignedIn()) {
+                runOnUiThread {
+                    uiState = uiState.copy(isBusy = false, message = status)
+                }
+                return@handleCallback
+            }
+
+            authManager.validateSession { result ->
+                runOnUiThread {
+                    uiState = result.fold(
+                        onSuccess = {
+                            uiState.copy(
+                                isSignedIn = true,
+                                isBusy = false,
+                                message = null,
+                                sessionStatus = getString(R.string.auth_session_verified),
+                            )
+                        },
+                        onFailure = {
+                            uiState.copy(
+                                isSignedIn = false,
+                                isBusy = false,
+                                message = getString(R.string.auth_session_unavailable),
+                            )
+                        },
+                    )
+                }
             }
         }
     }
@@ -82,7 +102,8 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         authManager = AuthManager(this)
-        uiState = AuthShellState(isSignedIn = authManager.isSignedIn())
+        val hasSavedSession = authManager.isSignedIn()
+        uiState = AuthShellState(isSignedIn = false, isBusy = hasSavedSession)
         setContent {
             AndivumTheme {
                 AndivumApp(
@@ -90,6 +111,27 @@ class MainActivity : ComponentActivity() {
                     onSignIn = ::beginSignIn,
                     onSignOut = ::signOut,
                 )
+            }
+        }
+        if (hasSavedSession) {
+            authManager.validateSession { result ->
+                runOnUiThread {
+                    uiState = result.fold(
+                        onSuccess = {
+                            uiState.copy(
+                                isSignedIn = true,
+                                isBusy = false,
+                                sessionStatus = getString(R.string.auth_session_verified),
+                            )
+                        },
+                        onFailure = {
+                            uiState.copy(
+                                isBusy = false,
+                                message = getString(R.string.auth_session_unavailable),
+                            )
+                        },
+                    )
+                }
             }
         }
     }
@@ -132,7 +174,10 @@ private fun AndivumApp(
 ) {
     when (state.screen) {
         AuthShellScreen.SIGN_IN -> SignInScreen(state = state, onSignIn = onSignIn)
-        AuthShellScreen.DASHBOARD -> DashboardScreen(onSignOut = onSignOut)
+        AuthShellScreen.DASHBOARD -> DashboardScreen(
+            sessionStatus = state.sessionStatus,
+            onSignOut = onSignOut,
+        )
     }
 }
 
@@ -260,7 +305,10 @@ private data class ModulePlaceholder(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun DashboardScreen(onSignOut: () -> Unit) {
+private fun DashboardScreen(
+    sessionStatus: String?,
+    onSignOut: () -> Unit,
+) {
     val modules = listOf(
         ModulePlaceholder(
             title = R.string.module_tasks_title,
@@ -371,6 +419,13 @@ private fun DashboardScreen(onSignOut: () -> Unit) {
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onPrimaryContainer,
                         )
+                        sessionStatus?.let { status ->
+                            Text(
+                                text = status,
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.primary,
+                            )
+                        }
                     }
                 }
             }

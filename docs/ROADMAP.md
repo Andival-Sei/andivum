@@ -22,6 +22,8 @@
 - [x] Создать Android Compose shell и OIDC PKCE client foundation.
 - [x] Добавить passwordless registration surface и блокировку authorize до
       сохранения первого passkey.
+- [x] Добавить защищённую проверку native-сессии и автоматическое обновление
+      токенов на Windows и Android.
 - [ ] Добавить нативные `en-US`/`ru-RU` ресурсы, language settings и `pnpm i18n:check`.
 - [ ] Добавить secure token storage и logout-all-devices.
 - [ ] Проверить один аккаунт на Windows и Android.

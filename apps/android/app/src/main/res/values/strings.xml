@@ -16,6 +16,8 @@
     <string name="auth_token_exchange_failed">Sign-in could not be completed.</string>
     <string name="auth_failed">Sign-in was not completed.</string>
     <string name="auth_signed_in">Signed in with passkey</string>
+    <string name="auth_session_verified">Server verified your account.</string>
+    <string name="auth_session_unavailable">The server could not verify this session. Please sign in again when you are online.</string>
     <string name="dashboard_overview">Overview</string>
     <string name="dashboard_eyebrow">Your space is ready</string>
     <string name="dashboard_title">Make room for what matters today.</string>

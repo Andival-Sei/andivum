@@ -33,7 +33,34 @@ public partial class MainPageViewModel : ObservableObject
 
     public MainPageViewModel()
     {
-        SetSession(authClient.CurrentSession is not null);
+        SetSession(false);
+    }
+
+    public async Task InitializeAsync()
+    {
+        if (authClient.CurrentSession is null)
+        {
+            SetSession(false);
+            return;
+        }
+
+        IsBusy = true;
+        SessionStatus = UiStrings.Get("AuthStatusChecking");
+        try
+        {
+            await authClient.GetCurrentSessionAsync();
+            SetSession(true);
+            SessionStatus = UiStrings.Get("AuthStatusVerified");
+        }
+        catch
+        {
+            SetSession(false);
+            SessionStatus = UiStrings.Get("AuthStatusSessionUnavailable");
+        }
+        finally
+        {
+            IsBusy = false;
+        }
     }
 
     [RelayCommand]
@@ -75,8 +102,9 @@ public partial class MainPageViewModel : ObservableObject
         {
             if (await authClient.HandleCallbackAsync(uri))
             {
+                await authClient.GetCurrentSessionAsync();
                 SetSession(true);
-                SessionStatus = UiStrings.Get("AuthStatusSignedIn");
+                SessionStatus = UiStrings.Get("AuthStatusVerified");
             }
         }
         catch (Exception exception)

@@ -26,4 +26,7 @@
   <data name="AuthStatusBrowser"><value>Complete passkey sign-in in the system browser.</value></data>
   <data name="AuthStatusSignedIn"><value>Signed in with passkey</value></data>
   <data name="AuthStatusSignedOut"><value>You have been signed out.</value></data>
+  <data name="AuthStatusChecking"><value>Checking your secure session…</value></data>
+  <data name="AuthStatusVerified"><value>Your account is verified by the server.</value></data>
+  <data name="AuthStatusSessionUnavailable"><value>The server could not verify this session. Please sign in again when you are online.</value></data>
 </root>

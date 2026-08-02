@@ -26,4 +26,7 @@
   <data name="AuthStatusBrowser"><value>Завершите вход с passkey в системном браузере.</value></data>
   <data name="AuthStatusSignedIn"><value>Вход выполнен с passkey</value></data>
   <data name="AuthStatusSignedOut"><value>Вы вышли из аккаунта.</value></data>
+  <data name="AuthStatusChecking"><value>Проверяем защищённую сессию…</value></data>
+  <data name="AuthStatusVerified"><value>Сервер подтвердил ваш аккаунт.</value></data>
+  <data name="AuthStatusSessionUnavailable"><value>Сервер не смог подтвердить эту сессию. Войдите снова, когда будете онлайн.</value></data>
 </root>

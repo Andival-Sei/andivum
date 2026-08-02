@@ -12,6 +12,7 @@
 | [0008](adr/0008-native-client-localization.md)   | Нативная локализация клиентов            | Принято |
 | [0009](adr/0009-authentication-slice.md)         | Первый authentication vertical slice    | Принято |
 | [0010](adr/0010-passwordless-account-bootstrap.md) | Passwordless account bootstrap без почты | Принято |
+| [0011](adr/0011-protected-native-session.md)     | Проверка и обновление native-сессии     | Принято |
 
 ## Открытые решения
 

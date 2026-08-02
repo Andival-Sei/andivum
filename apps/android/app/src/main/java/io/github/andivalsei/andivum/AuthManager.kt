@@ -21,6 +21,7 @@ class AuthManager(context: Context) {
     private val issuer = BuildConfig.API_BASE_URL
     private val authorizationService = AuthorizationService(appContext)
     private val stateStore = SecureAuthStateStore(appContext)
+    private val sessionApiClient = SessionApiClient(issuer)
     private var state = stateStore.read() ?: AuthState()
 
     fun startSignIn(onReady: (Intent) -> Unit, onError: (String) -> Unit) {
@@ -36,7 +37,7 @@ class AuthManager(context: Context) {
                 ResponseTypeValues.CODE,
                 Uri.parse(redirectUri),
             )
-                .setScope("openid profile")
+                .setScope("openid profile offline_access")
                 .setCodeVerifier(Pkce.createVerifier())
                 .build()
             onReady(authorizationService.getAuthorizationRequestIntent(request))
@@ -64,6 +65,61 @@ class AuthManager(context: Context) {
     }
 
     fun isSignedIn(): Boolean = state.isAuthorized
+
+    fun validateSession(onComplete: (Result<SessionResponse>) -> Unit) {
+        state.performActionWithFreshTokens(authorizationService) { accessToken, _, exception ->
+            stateStore.write(state)
+            if (exception != null || accessToken.isNullOrBlank()) {
+                onComplete(
+                    Result.failure(
+                        exception ?: IllegalStateException("No access token is available."),
+                    ),
+                )
+                return@performActionWithFreshTokens
+            }
+
+            validateWithAccessToken(accessToken, onComplete)
+        }
+    }
+
+    private fun validateWithAccessToken(
+        accessToken: String,
+        onComplete: (Result<SessionResponse>) -> Unit,
+    ) {
+        Thread {
+            try {
+                onComplete(Result.success(sessionApiClient.getCurrentSession(accessToken)))
+            } catch (exception: SessionUnauthorizedException) {
+                refreshAfterUnauthorized(onComplete)
+            } catch (exception: Exception) {
+                onComplete(Result.failure(exception))
+            }
+        }.start()
+    }
+
+    private fun refreshAfterUnauthorized(onComplete: (Result<SessionResponse>) -> Unit) {
+        val refreshRequest = try {
+            state.createTokenRefreshRequest()
+        } catch (exception: Exception) {
+            onComplete(Result.failure(exception))
+            return
+        }
+
+        authorizationService.performTokenRequest(refreshRequest) { tokenResponse, tokenException ->
+            state.update(tokenResponse, tokenException)
+            stateStore.write(state)
+            if (tokenException != null || tokenResponse == null || state.accessToken.isNullOrBlank()) {
+                onComplete(
+                    Result.failure(
+                        tokenException ?: IllegalStateException("Refresh did not return an access token."),
+                    ),
+                )
+                return@performTokenRequest
+            }
+
+            validateWithAccessToken(state.accessToken!!, onComplete)
+        }
+    }
 
     fun signOut() {
         state = AuthState()

@@ -33,7 +33,9 @@ builder.Services.AddOpenIddict()
     })
     .AddServer(options =>
     {
-        options.RegisterScopes(OpenIddictConstants.Scopes.Profile);
+        options.RegisterScopes(
+            OpenIddictConstants.Scopes.Profile,
+            OpenIddictConstants.Scopes.OfflineAccess);
         options.SetAuthorizationEndpointUris("connect/authorize")
             .SetTokenEndpointUris("connect/token")
             .AllowAuthorizationCodeFlow()
@@ -156,12 +158,8 @@ app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
 
 app.MapGet(
         "/api/v1/session",
-        (HttpContext context) => Results.Ok(new
-        {
-            userId = context.User.FindFirst(
-                OpenIddictConstants.Claims.Subject)?.Value,
-            authenticated = true,
-        }))
+        (HttpContext context) => Results.Ok(
+            SessionEndpoint.CreateResponse(context.User)))
     .RequireAuthorization(new AuthorizeAttribute
     {
         AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme,

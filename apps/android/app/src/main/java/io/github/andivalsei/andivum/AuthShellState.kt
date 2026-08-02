@@ -9,6 +9,7 @@ data class AuthShellState(
     val isSignedIn: Boolean,
     val isBusy: Boolean = false,
     val message: String? = null,
+    val sessionStatus: String? = null,
 ) {
     val screen: AuthShellScreen
         get() = if (isSignedIn) AuthShellScreen.DASHBOARD else AuthShellScreen.SIGN_IN

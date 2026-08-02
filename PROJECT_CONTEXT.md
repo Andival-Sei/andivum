@@ -72,6 +72,8 @@ UI, интеграция с ОС, локальное хранение и час�
 ## Текущий следующий шаг
 
 Нативные login/dashboard shells для Windows и Android уже созданы и подключены
-к passkey-flow. Следующая цель authentication slice — защищённый вызов API,
-надёжное восстановление/обновление сессии, logout и проверка одного аккаунта на
-обеих платформах. После этого начинается Tasks vertical slice.
+к passkey-flow. Защищённый `GET /api/v1/session`, обновление access/refresh
+токенов и стабильный `userId` уже подключены к обоим клиентам; физический
+Android smoke подтверждает серверную проверку. Следующая цель authentication
+slice — logout, account recovery и ручной Windows/Android smoke одного аккаунта.
+После этого начинается Tasks vertical slice.

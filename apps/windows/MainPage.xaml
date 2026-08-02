@@ -107,6 +107,10 @@
                             <StackPanel Spacing="10">
                                 <TextBlock x:Uid="DashboardBody" TextWrapping="Wrap" Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}" />
                                 <TextBlock x:Uid="DashboardHint" TextWrapping="Wrap" Foreground="{ThemeResource TextOnAccentFillColorSecondaryBrush}" />
+                                <TextBlock
+                                    Text="{x:Bind ViewModel.SessionStatus, Mode=OneWay}"
+                                    TextWrapping="Wrap"
+                                    Foreground="{ThemeResource TextOnAccentFillColorSecondaryBrush}" />
                             </StackPanel>
                         </Border>
 

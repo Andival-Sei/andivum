@@ -15,6 +15,8 @@
 
   <ItemGroup>
     <Compile Include="..\windows\Auth\SessionUiState.cs" Link="Auth\SessionUiState.cs" />
+    <Compile Include="..\windows\Auth\SessionToken.cs" Link="Auth\SessionToken.cs" />
+    <Compile Include="..\windows\Auth\ProtectedSessionClient.cs" Link="Auth\ProtectedSessionClient.cs" />
   </ItemGroup>
 
 </Project>

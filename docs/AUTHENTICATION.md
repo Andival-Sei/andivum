@@ -26,6 +26,15 @@ Windows и Android. Источник машинно-читаемого конт�
 Нативные login/dashboard shells уже реализованы на Windows и Android; сама
 passkey ceremony по-прежнему проходит на server-rendered auth surface через
 системный браузер.
+После получения токенов оба клиента вызывают защищённый `GET /api/v1/session`.
+Dashboard открывается только после ответа сервера, а не только потому, что
+локально нашёлся сохранённый токен.
+Native-клиенты запрашивают `offline_access`, поэтому при истечении короткого
+access token клиент получает новую пару токенов через refresh token и сохраняет
+её в защищённом хранилище ОС.
+Ответ `/api/v1/session` содержит стабильный `userId`. Одинаковый `userId` на
+Windows и Android означает, что обе платформы работают с одной аккаунтной
+записью; токен и сам идентификатор не выводятся в UI или логи.
 
 ## Локальный запуск
 
@@ -33,14 +42,20 @@ passkey ceremony по-прежнему проходит на server-rendered aut
 
 ```powershell
 Copy-Item .env.example .env
-dotnet dev-certs https --trust
 pnpm install
 pnpm dev:infra
 pnpm dev:api
 ```
 
-API доступен по адресу `https://localhost:7240`. `pnpm dev:api` использует
-локальную PostgreSQL-базу из `.env`, включает только для неё
+API доступен по адресу `https://localhost:7240`. При первом запуске
+`pnpm dev:api` автоматически подготавливает локальный CA и сертификат API в
+`%TEMP%\andivum-local-ca`, а корневой CA добавляется в доверенные сертификаты
+текущего пользователя Windows. Это нужно, чтобы Windows и debug Android
+доверяли одному и тому же API-сертификату. На Android устанавливается только
+файл `andivum-local-ca.crt` как «Сертификат центра сертификации»; PFX-файл на
+телефон не переносится.
+
+`pnpm dev:api` использует локальную PostgreSQL-базу из `.env`, включает только для неё
 `Database:AutoMigrate=true` и создаёт зарегистрированные native clients.
 Подключение к внешней базе не включает автоматические миграции.
 
@@ -66,11 +81,11 @@ pnpm android:build -- -PandivumApiBaseUrl=https://localhost:7240
 
 На 2026-08-02 физический Pixel 7 Pro успешно определяется по USB, APK
 устанавливается и UI запускается. После установки локального CA на debug-
-устройство и `adb reverse` AppAuth discovery, passkey registration/sign-in,
-возврат по callback и logout проходят успешно. Trust-all обход для приложения
-не используется. Windows login shell проверен в packaged-приложении; Windows
-Hello ceremony требует ручного подтверждения пользователя и не автоматизируется
-агентом.
+устройство и `adb reverse` AppAuth discovery, passkey sign-in, возврат по
+callback и защищённая проверка сессии проходят успешно; instrumentation дал
+5/5 тестов. Trust-all обход для приложения не используется. Windows login shell
+проверен в packaged-приложении; Windows Hello ceremony требует ручного
+подтверждения пользователя и не автоматизируется агентом.
 
 Для остановки инфраструктуры:
 
@@ -124,5 +139,5 @@ git diff --check
 ```
 
 Для passkey-тестирования браузеру нужен доверенный локальный HTTPS-сертификат.
-Реальный Windows Hello и Android Credential Manager будут проверены отдельным
-device-smoke этапом после создания нативных оболочек.
+Android physical smoke уже выполнен; ручное подтверждение Windows Hello и
+полная проверка одного аккаунта на двух устройствах остаются отдельным шагом.
