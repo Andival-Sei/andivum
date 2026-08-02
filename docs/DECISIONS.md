@@ -9,6 +9,7 @@
 | [0005](adr/0005-product-identity.md)             | Разделение display name и технических ID | Принято |
 | [0006](adr/0006-cli-first-ai-tooling.md)         | CLI-first tooling, MCP как адаптер       | Принято |
 | [0007](adr/0007-autonomous-ai-development.md)    | Автономная spec-first TDD-разработка     | Принято |
+| [0008](adr/0008-native-client-localization.md)   | Нативная локализация клиентов            | Принято |
 
 ## Открытые решения
 

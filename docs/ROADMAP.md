@@ -10,6 +10,7 @@
 - [x] Создать backend monorepo skeleton и единый `pnpm` command facade.
 - [ ] Добавить CI для Windows, Android, backend и контрактов.
 - [x] Добавить локальную PostgreSQL-инфраструктуру без production-секретов.
+- [x] Зафиксировать нативную локализацию Windows/Android и policy fallback.
 
 ## 1. Authentication vertical slice
 
@@ -18,6 +19,7 @@
 - [ ] Реализовать registration/sign-in/logout с passkeys.
 - [ ] Создать WinUI 3 shell и OIDC PKCE client.
 - [ ] Создать Android Compose shell и OIDC PKCE client.
+- [ ] Добавить нативные `en-US`/`ru-RU` ресурсы, language settings и `pnpm i18n:check`.
 - [ ] Добавить secure token storage и logout-all-devices.
 - [ ] Проверить один аккаунт на Windows и Android.
 

@@ -1,6 +1,8 @@
 import { access, readdir, readFile } from "node:fs/promises";
 import { dirname, extname, resolve } from "node:path";
 
+import { validateProductConfiguration } from "./product-config-lib.mjs";
+
 const root = resolve(import.meta.dirname, "../..");
 const requiredFiles = [
   "README.md",
@@ -68,23 +70,7 @@ try {
 }
 
 if (product) {
-  if (!product.displayName?.trim()) {
-    errors.push("displayName не может быть пустым");
-  }
-
-  if (!product.supportedLocales?.includes(product.defaultLocale)) {
-    errors.push("defaultLocale должен входить в supportedLocales");
-  }
-
-  for (const locale of ["en-US", "ru-RU"]) {
-    if (!product.supportedLocales?.includes(locale)) {
-      errors.push(`На старте обязательна локаль ${locale}`);
-    }
-  }
-
-  if (product.theme?.default !== "system") {
-    errors.push("Тема по умолчанию должна следовать системной");
-  }
+  errors.push(...validateProductConfiguration(product));
 }
 
 for (const markdownPath of await collectMarkdownFiles(root)) {

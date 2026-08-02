@@ -55,8 +55,11 @@ golden test cases, но не общий runtime-код UI-клиентов.
 - SQLite через Microsoft.Data.Sqlite или EF Core SQLite;
 - MSIX для упаковки и обновлений.
 
-Используются системные локаль и тема. Платформенные сервисы (уведомления, secure
-storage, deep links, lifecycle) находятся за внутренними интерфейсами, чтобы
+Используется системная локаль с ручным per-device override. Windows локализуется
+через MRT Core и `.resw`, Android — через `strings.xml`/`plurals`. Языки `ru-*`
+и `en-*` сводятся к `ru-RU` и `en-US`, остальные или недоступные локали получают
+русский fallback. Платформенные сервисы (уведомления, secure storage, deep links,
+lifecycle и locale settings) находятся за внутренними интерфейсами, чтобы
 domain/use-case слой тестировался без UI.
 
 ### Android
@@ -176,8 +179,10 @@ capability contract, например `CalendarRead`, `ProfileRead` или
 
 ## 9. Имя и идентификаторы
 
-`config/product.json` — источник display name, локалей и тем. При создании
-проектов появится генератор ресурсов и build properties.
+`config/product.json` — источник display name, поддерживаемых локалей,
+технической базовой локали ресурсов, locale fallback policy и тем. При создании
+проектов появятся нативные каталоги ресурсов и CLI-проверка их согласованности;
+общий runtime JSON со всеми переводами не вводится.
 
 Не все значения являются переименуемыми:
 

@@ -6,6 +6,7 @@
   "slug": "andivum",
   "publisher": "Andival-Sei",
   "defaultLocale": "en-US",
+  "systemLocaleFallback": "ru-RU",
   "supportedLocales": [
     "en-US",
     "ru-RU"
