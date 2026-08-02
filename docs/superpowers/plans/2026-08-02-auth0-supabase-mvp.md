@@ -85,8 +85,8 @@ git diff --check
 
 ## Доставка
 
-- [ ] Commit
-- [ ] Push
-- [ ] CI
-- [ ] PR/merge
-- [ ] HEAD синхронизирован с remote
+- [x] Commit
+- [x] Push
+- [x] CI
+- [x] Draft PR
+- [x] HEAD синхронизирован с remote
