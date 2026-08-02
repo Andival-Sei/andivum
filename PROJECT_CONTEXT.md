@@ -10,7 +10,8 @@ Android. Первый пользователь — владелец проект
 ## Первый продуктовый срез
 
 1. Экран входа и регистрации.
-2. Passwordless-аутентификация с passkeys.
+2. Регистрация и вход по email + паролю через системный браузер; passkey можно
+   подключить дополнительно в настройках аккаунта.
 3. Базовый модуль умных задач.
 4. Базовый модуль личных финансов.
 5. Синхронизация данных между устройствами одного пользователя.
@@ -29,8 +30,9 @@ Android. Первый пользователь — владелец проект
 - Локальные данные: SQLite; Room на Android, Microsoft.Data.Sqlite/EF Core на
   Windows.
 - API: HTTPS REST + OpenAPI, generated native clients.
-- Auth: ASP.NET Core Identity passkeys + OIDC/OAuth 2.0 Authorization Code with
-  PKCE; OpenIddict как протокольный сервер.
+- Auth: ASP.NET Core Identity passwords/passkeys + OIDC/OAuth 2.0 Authorization
+  Code with PKCE; OpenIddict как протокольный сервер. Пароль вводится только на
+  server-rendered auth surface, не в native-клиенте.
 - Наблюдаемость: OpenTelemetry.
 - Репозиторий: monorepo, единый command facade через `pnpm`.
 
@@ -69,8 +71,12 @@ UI, интеграция с ОС, локальное хранение и час�
 - Не выбираем облачного провайдера до появления работающего локального vertical
   slice.
 
-## Следующая цель
+## Текущий следующий шаг
 
-Создать сквозной authentication slice: локальный backend, PostgreSQL,
-registration/sign-in с passkey через системный браузер, пустая авторизованная
-оболочка WinUI 3 и Android Compose, плюс контрактные и smoke-тесты.
+Нативные login/dashboard shells для Windows и Android уже созданы и подключены
+к OIDC-flow. Защищённый `GET /api/v1/session`, обновление access/refresh
+токенов и стабильный `userId` уже подключены к обоим клиентам; физический
+Android smoke подтверждает серверную проверку. Следующая цель authentication
+slice — logout, account recovery и ручной Windows/Android smoke одного аккаунта;
+email/password registration/sign-in и optional passkey settings уже собраны.
+После этого начинается Tasks vertical slice.

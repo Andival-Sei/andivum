@@ -1,14 +1,11 @@
 using Andivum_Windows.Auth;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.UI.Xaml;
+using Windows.System;
 
 namespace Andivum_Windows.ViewModels;
 
-/// <summary>
-/// Sample ViewModel using CommunityToolkit.Mvvm partial property syntax.
-/// Uses <see cref="ObservableProperty"/> for change notification and
-/// <see cref="RelayCommand"/> for command binding.
-/// </summary>
 public partial class MainPageViewModel : ObservableObject
 {
     private readonly WindowsAuthClient authClient = new();
@@ -17,20 +14,78 @@ public partial class MainPageViewModel : ObservableObject
     public partial string Greeting { get; set; } = ProductInfo.DisplayName;
 
     [ObservableProperty]
-    public partial string SessionStatus { get; set; } = "Not signed in";
+    public partial bool IsSignedIn { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsBusy { get; set; }
+
+    [ObservableProperty]
+    public partial string SessionStatus { get; set; } = UiStrings.Get("AuthStatusNotSignedIn");
+
+    public Visibility SignInVisibility => IsSignedIn
+        ? Visibility.Collapsed
+        : Visibility.Visible;
+
+    public Visibility DashboardVisibility => IsSignedIn
+        ? Visibility.Visible
+        : Visibility.Collapsed;
+
+    public bool IsSignInEnabled => !IsBusy;
+
+    public MainPageViewModel()
+    {
+        SetSession(false);
+    }
+
+    public async Task InitializeAsync()
+    {
+        if (authClient.CurrentSession is null)
+        {
+            SetSession(false);
+            return;
+        }
+
+        IsBusy = true;
+        SessionStatus = UiStrings.Get("AuthStatusChecking");
+        try
+        {
+            await authClient.GetCurrentSessionAsync();
+            SetSession(true);
+            SessionStatus = UiStrings.Get("AuthStatusVerified");
+        }
+        catch
+        {
+            SetSession(false);
+            SessionStatus = UiStrings.Get("AuthStatusSessionUnavailable");
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
 
     [RelayCommand]
     private async Task SignInAsync()
     {
-        SessionStatus = "Opening secure sign-in…";
+        if (IsBusy)
+        {
+            return;
+        }
+
+        IsBusy = true;
+        SessionStatus = UiStrings.Get("AuthStatusOpening");
         try
         {
             await authClient.BeginSignInAsync();
-            SessionStatus = "Complete passkey sign-in in the system browser.";
+            SessionStatus = UiStrings.Get("AuthStatusBrowser");
         }
         catch (Exception exception)
         {
             SessionStatus = exception.Message;
+        }
+        finally
+        {
+            IsBusy = false;
         }
     }
 
@@ -38,7 +93,18 @@ public partial class MainPageViewModel : ObservableObject
     private void SignOut()
     {
         authClient.SignOut();
-        SessionStatus = "Not signed in";
+        SetSession(false);
+        SessionStatus = UiStrings.Get("AuthStatusSignedOut");
+    }
+
+    [RelayCommand]
+    private async Task OpenAccountSettingsAsync()
+    {
+        if (!await Launcher.LaunchUriAsync(
+                new Uri($"{WindowsAuthClient.ApiBaseUrl}/Account/Settings")))
+        {
+            SessionStatus = UiStrings.Get("AuthStatusSessionUnavailable");
+        }
     }
 
     public async Task HandleCallbackAsync(Uri uri)
@@ -47,12 +113,35 @@ public partial class MainPageViewModel : ObservableObject
         {
             if (await authClient.HandleCallbackAsync(uri))
             {
-                SessionStatus = "Signed in with passkey";
+                await authClient.GetCurrentSessionAsync();
+                SetSession(true);
+                SessionStatus = UiStrings.Get("AuthStatusVerified");
             }
         }
         catch (Exception exception)
         {
+            SetSession(authClient.CurrentSession is not null);
             SessionStatus = exception.Message;
         }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    partial void OnIsSignedInChanged(bool value)
+    {
+        OnPropertyChanged(nameof(SignInVisibility));
+        OnPropertyChanged(nameof(DashboardVisibility));
+    }
+
+    partial void OnIsBusyChanged(bool value)
+    {
+        OnPropertyChanged(nameof(IsSignInEnabled));
+    }
+
+    private void SetSession(bool signedIn)
+    {
+        IsSignedIn = new SessionUiState(signedIn).IsSignedIn;
     }
 }

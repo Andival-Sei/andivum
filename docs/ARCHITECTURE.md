@@ -103,10 +103,17 @@ Azure или другого конкретного поставщика для �
 
 1. Приложение открывает системную authentication session, а не embedded WebView.
 2. Backend выполняет OIDC Authorization Code flow с PKCE.
-3. Страница auth-домена использует ASP.NET Core Identity passkeys/WebAuthn.
-4. ОС показывает Windows Hello или доступный Android passkey provider.
-5. Клиент получает короткоживущий access token и rotation-capable refresh token.
-6. Токены сохраняются только в защищённом хранилище ОС.
+3. Страница auth-домена использует ASP.NET Core Identity для email/password и
+   optional passkeys/WebAuthn.
+4. Пароль вводится только в этой server-rendered странице; native-клиент не
+   использует password grant и не видит пароль.
+5. При passkey-сценарии ОС показывает Windows Hello или доступный Android
+   passkey provider.
+6. Клиент получает короткоживущий access token и rotation-capable refresh token.
+7. Токены сохраняются только в защищённом хранилище ОС.
+8. Клиент вызывает защищённый `/api/v1/session` и открывает dashboard только
+   после подтверждения сервером; при истечении access token используется
+   refresh token с rotation.
 
 Этот вариант даёт единый безопасный протокол Windows, Android и будущему вебу.
 Прямые вызовы Windows WebAuthn API или Android Credential Manager могут быть
@@ -119,6 +126,7 @@ browser flow окажется недостаточно нативным.
 - записать `passkeyRelyingPartyId` в `config/product.json`;
 - настроить строгую проверку origin и host headers;
 - определить account recovery;
+- добавить подтверждение email и безопасное восстановление пароля;
 - ограничить число и длину имён passkeys;
 - спроектировать revocation, logout-all-devices и refresh-token rotation.
 

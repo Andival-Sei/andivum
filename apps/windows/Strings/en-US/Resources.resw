@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="AuthEyebrow.Text"><value>Your personal system</value></data>
+  <data name="AuthTitle.Text"><value>A calmer place for everything you manage.</value></data>
+  <data name="AuthSubtitle.Text"><value>Keep tasks, money and future modules together, with a native experience on every device.</value></data>
+  <data name="AuthCardTitle.Text"><value>Sign in or create an account</value></data>
+  <data name="AuthCardBody.Text"><value>Use the system browser to create an account or sign in with email and password. You can connect a passkey later in settings.</value></data>
+  <data name="AuthPasskeyButton.Content"><value>Sign in or create an account</value></data>
+  <data name="AuthSecurityNote.Text"><value>Your password is entered only on the secure sign-in page and is never sent to the app.</value></data>
+  <data name="NavigationOverview.Content"><value>Overview</value></data>
+  <data name="NavigationTasks.Content"><value>Tasks</value></data>
+  <data name="NavigationFinance.Content"><value>Finance</value></data>
+  <data name="DashboardEyebrow.Text"><value>Your space is ready</value></data>
+  <data name="DashboardTitle.Text"><value>Make room for what matters today.</value></data>
+  <data name="DashboardBody.Text"><value>This is the starting point for your personal system. Your modules will live here as they become useful.</value></data>
+  <data name="DashboardHint.Text"><value>More connected areas will appear here over time.</value></data>
+  <data name="DashboardModules.Text"><value>Your modules</value></data>
+  <data name="TasksCardTitle.Text"><value>Tasks</value></data>
+  <data name="TasksCardBody.Text"><value>Capture, plan and finish the things that matter.</value></data>
+  <data name="FinanceCardTitle.Text"><value>Finance</value></data>
+  <data name="FinanceCardBody.Text"><value>See your money clearly and make better decisions.</value></data>
+  <data name="ModuleComingSoon.Text"><value>Coming next</value></data>
+  <data name="AccountSettingsButton.Content"><value>Account settings</value></data>
+  <data name="SignOutButton.Content"><value>Sign out</value></data>
+  <data name="AuthStatusNotSignedIn"><value>Not signed in</value></data>
+  <data name="AuthStatusOpening"><value>Opening secure sign-in…</value></data>
+  <data name="AuthStatusBrowser"><value>Complete sign-in or registration in the system browser.</value></data>
+  <data name="AuthStatusSignedIn"><value>Signed in</value></data>
+  <data name="AuthStatusSignedOut"><value>You have been signed out.</value></data>
+  <data name="AuthStatusChecking"><value>Checking your secure session…</value></data>
+  <data name="AuthStatusVerified"><value>Your account is verified by the server.</value></data>
+  <data name="AuthStatusSessionUnavailable"><value>The server could not verify this session. Please sign in again when you are online.</value></data>
+</root>

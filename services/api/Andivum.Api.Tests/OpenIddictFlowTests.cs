@@ -1,6 +1,12 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Identity;
+using Andivum.Api.Data;
+using OpenIddict.Abstractions;
+using Andivum.Api.Identity;
 using Xunit;
 
 namespace Andivum.Api.Tests;
@@ -120,6 +126,224 @@ public sealed class OpenIddictFlowTests
         var body = await response.Content.ReadAsStringAsync();
         Assert.True(response.IsSuccessStatusCode, body);
         Assert.Contains("Continue with passkey", body);
+        Assert.Contains("Create an account with email and password", body);
+        Assert.Contains("Account settings", body);
+        Assert.DoesNotContain("Create an account with passkey", body);
+    }
+
+    [Fact]
+    public async Task Authorization_surface_offers_email_password_registration_and_sign_in()
+    {
+        await using var factory = CreateFactory();
+        using var client = CreateHttpsClient(factory);
+
+        using var response = await client.GetAsync(CreateAuthorizationPath());
+
+        var body = await response.Content.ReadAsStringAsync();
+        Assert.True(response.IsSuccessStatusCode, body);
+        Assert.Contains("Sign in with email and password", body);
+        Assert.Contains("Create an account with email and password", body);
+        Assert.Contains("name=\"email\"", body);
+        Assert.Contains("name=\"password\"", body);
+        Assert.Contains("name=\"confirmPassword\"", body);
+    }
+
+    [Fact]
+    public async Task Email_password_registration_completes_the_native_authorization_request()
+    {
+        await using var factory = CreateFactory();
+        using var client = CreateHttpsClient(
+            factory,
+            allowAutoRedirect: false);
+        var email = $"registration-{Guid.NewGuid():N}@example.test";
+
+        using var pageResponse = await client.GetAsync(CreateAuthorizationPath());
+        var page = await pageResponse.Content.ReadAsStringAsync();
+        var antiForgeryToken = ExtractAntiForgeryToken(page);
+
+        using var response = await client.PostAsync(
+            "/connect/authorize",
+            CreateAuthorizationForm(
+            [
+                new("action", "register"),
+                new("email", email),
+                new("password", "CorrectHorseBattery!27"),
+                new("confirmPassword", "CorrectHorseBattery!27"),
+                new("__RequestVerificationToken", antiForgeryToken),
+            ]));
+
+        var location = response.Headers.Location?.ToString();
+        Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+        Assert.NotNull(location);
+        Assert.Contains("code=", location);
+        Assert.Contains("state=", location);
+        Assert.DoesNotContain("CorrectHorseBattery!27", location);
+
+        using var scope = factory.Services.CreateScope();
+        var userManager = scope.ServiceProvider
+            .GetRequiredService<UserManager<ApplicationUser>>();
+        var user = await userManager.FindByEmailAsync(email);
+        Assert.NotNull(user);
+        Assert.True(await userManager.CheckPasswordAsync(
+            user!,
+            "CorrectHorseBattery!27"));
+    }
+
+    [Fact]
+    public async Task Email_password_login_completes_the_native_authorization_request()
+    {
+        await using var factory = CreateFactory();
+        using var client = CreateHttpsClient(
+            factory,
+            allowAutoRedirect: false);
+        var email = $"login-{Guid.NewGuid():N}@example.test";
+
+        using var scope = factory.Services.CreateScope();
+        var userManager = scope.ServiceProvider
+            .GetRequiredService<UserManager<ApplicationUser>>();
+        var user = new ApplicationUser
+        {
+            Email = email,
+            UserName = email,
+        };
+        var createResult = await userManager.CreateAsync(
+            user,
+            "CorrectHorseBattery!27");
+        Assert.True(createResult.Succeeded, string.Join(
+            ", ",
+            createResult.Errors.Select(error => error.Description)));
+
+        using var pageResponse = await client.GetAsync(CreateAuthorizationPath());
+        var page = await pageResponse.Content.ReadAsStringAsync();
+        var antiForgeryToken = ExtractAntiForgeryToken(page);
+
+        using var response = await client.PostAsync(
+            "/connect/authorize",
+            CreateAuthorizationForm(
+            [
+                new("action", "login"),
+                new("email", email),
+                new("password", "CorrectHorseBattery!27"),
+                new("__RequestVerificationToken", antiForgeryToken),
+            ]));
+
+        var location = response.Headers.Location?.ToString();
+        Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+        Assert.NotNull(location);
+        Assert.Contains("code=", location);
+        Assert.Contains("state=", location);
+        Assert.DoesNotContain("CorrectHorseBattery!27", location);
+
+        using var settingsResponse = await client.GetAsync("/Account/Settings");
+        var settingsBody = await settingsResponse.Content.ReadAsStringAsync();
+        Assert.True(settingsResponse.IsSuccessStatusCode, settingsBody);
+        Assert.Contains("Account settings", settingsBody);
+        Assert.Contains("Connect a passkey", settingsBody);
+    }
+
+    [Fact]
+    public async Task Account_settings_rejects_anonymous_requests()
+    {
+        await using var factory = CreateFactory();
+        using var client = CreateHttpsClient(factory);
+
+        using var response = await client.GetAsync("/Account/Settings");
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Email_password_authorization_without_csrf_is_rejected()
+    {
+        await using var factory = CreateFactory();
+        using var client = CreateHttpsClient(
+            factory,
+            allowAutoRedirect: false);
+
+        using var response = await client.PostAsync(
+            "/connect/authorize",
+            CreateAuthorizationForm(
+            [
+                new("action", "login"),
+                new("email", "nobody@example.test"),
+                new("password", "CorrectHorseBattery!27"),
+            ]));
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Contains("invalid_csrf", await response.Content.ReadAsStringAsync());
+    }
+
+    [Fact]
+    public async Task Registered_native_client_accepts_offline_access_scope()
+    {
+        await using var factory = CreateFactory();
+        using var client = CreateHttpsClient(factory);
+
+        using var response = await client.GetAsync(
+            "/connect/authorize?client_id=andivum-windows" +
+            "&response_type=code" +
+            "&redirect_uri=andivum%3A%2F%2Fwindows%2Fauth%2Fcallback" +
+            "&scope=openid%20profile%20offline_access" +
+            "&code_challenge=challenge" +
+            "&code_challenge_method=S256");
+
+        var body = await response.Content.ReadAsStringAsync();
+        Assert.True(response.IsSuccessStatusCode, body);
+        Assert.Contains("Continue with passkey", body);
+    }
+
+    [Fact]
+    public async Task Native_client_seeder_repairs_permissions_of_an_existing_client()
+    {
+        await using var factory = CreateFactory();
+        using var client = CreateHttpsClient(factory);
+        using var scope = factory.Services.CreateScope();
+        var manager = scope.ServiceProvider.GetRequiredService<IOpenIddictApplicationManager>();
+        var registry = scope.ServiceProvider.GetRequiredService<NativeClientRegistry>();
+        var existing = await manager.FindByClientIdAsync("andivum-windows");
+        Assert.NotNull(existing);
+
+        var legacyDescriptor = new OpenIddictApplicationDescriptor
+        {
+            ClientId = "andivum-windows",
+            ClientType = OpenIddictConstants.ClientTypes.Public,
+            ConsentType = OpenIddictConstants.ConsentTypes.Explicit,
+            DisplayName = "andivum-windows",
+        };
+        legacyDescriptor.RedirectUris.Add(new Uri("andivum://windows/auth/callback"));
+        legacyDescriptor.Permissions.UnionWith(
+        [
+            OpenIddictConstants.Permissions.Endpoints.Authorization,
+            OpenIddictConstants.Permissions.Endpoints.Token,
+            OpenIddictConstants.Permissions.GrantTypes.AuthorizationCode,
+            OpenIddictConstants.Permissions.GrantTypes.RefreshToken,
+            OpenIddictConstants.Permissions.ResponseTypes.Code,
+            OpenIddictConstants.Permissions.Scopes.Profile,
+        ]);
+        await manager.UpdateAsync(existing, legacyDescriptor);
+
+        await NativeClientSeeder.SeedAsync(manager, registry);
+
+        var repaired = await manager.FindByClientIdAsync("andivum-windows");
+        Assert.NotNull(repaired);
+        Assert.True(
+            await manager.HasPermissionAsync(
+                repaired,
+                OpenIddictConstants.Permissions.Prefixes.Scope +
+                OpenIddictConstants.Scopes.OfflineAccess));
+    }
+
+    [Fact]
+    public async Task Passkey_registration_without_csrf_is_rejected()
+    {
+        await using var factory = CreateFactory();
+        using var client = CreateHttpsClient(factory);
+
+        using var response = await client.PostAsJsonAsync(
+            "/Account/PasskeyRegistrationStart",
+            new { displayName = "Personal phone" });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [Fact]
@@ -163,11 +387,52 @@ public sealed class OpenIddictFlowTests
             });
     }
 
-    private static HttpClient CreateHttpsClient(WebApplicationFactory<Program> factory)
+    private static HttpClient CreateHttpsClient(
+        WebApplicationFactory<Program> factory,
+        bool allowAutoRedirect = true)
     {
         return factory.CreateClient(new WebApplicationFactoryClientOptions
         {
             BaseAddress = new Uri("https://localhost"),
+            AllowAutoRedirect = allowAutoRedirect,
         });
+    }
+
+    private static string CreateAuthorizationPath()
+    {
+        return "/connect/authorize?client_id=andivum-windows" +
+            "&response_type=code" +
+            "&redirect_uri=andivum%3A%2F%2Fwindows%2Fauth%2Fcallback" +
+            "&scope=openid%20profile%20offline_access" +
+            "&state=test-state" +
+            "&code_challenge=test-code-challenge" +
+            "&code_challenge_method=S256";
+    }
+
+    private static FormUrlEncodedContent CreateAuthorizationForm(
+        IEnumerable<KeyValuePair<string, string>> values)
+    {
+        var formValues = new List<KeyValuePair<string, string>>
+        {
+            new("client_id", "andivum-windows"),
+            new("response_type", "code"),
+            new("redirect_uri", "andivum://windows/auth/callback"),
+            new("scope", "openid profile offline_access"),
+            new("state", "test-state"),
+            new("code_challenge", "test-code-challenge"),
+            new("code_challenge_method", "S256"),
+        };
+        formValues.AddRange(values);
+        return new FormUrlEncodedContent(formValues);
+    }
+
+    private static string ExtractAntiForgeryToken(string html)
+    {
+        var match = Regex.Match(
+            html,
+            "name=\\\"__RequestVerificationToken\\\"[^>]*value=\\\"([^\\\"]+)\\\"",
+            RegexOptions.CultureInvariant);
+        Assert.True(match.Success, html);
+        return System.Net.WebUtility.HtmlDecode(match.Groups[1].Value);
     }
 }

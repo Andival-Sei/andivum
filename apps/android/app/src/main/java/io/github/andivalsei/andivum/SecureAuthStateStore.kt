@@ -36,9 +36,9 @@ class SecureAuthStateStore(context: Context) {
     }
 
     fun write(state: AuthState) {
-        val iv = ByteArray(12).also { java.security.SecureRandom().nextBytes(it) }
         val cipher = Cipher.getInstance("AES/GCM/NoPadding")
-        cipher.init(Cipher.ENCRYPT_MODE, key(), GCMParameterSpec(128, iv))
+        cipher.init(Cipher.ENCRYPT_MODE, key())
+        val iv = cipher.iv
         val ciphertext = cipher.doFinal(state.jsonSerializeString().toByteArray(Charsets.UTF_8))
         val packed = ByteBuffer.allocate(Int.SIZE_BYTES + iv.size + ciphertext.size)
             .putInt(iv.size)

@@ -17,9 +17,13 @@
 - [x] Создать ASP.NET Core backend и PostgreSQL migrations.
 - [x] Подключить ASP.NET Core Identity и OpenIddict.
 - [x] Зафиксировать auth API, локальный HTTPS запуск и security checks.
-- [ ] Реализовать registration/sign-in/logout с passkeys.
+- [x] Реализовать registration/sign-in с email/password и optional passkeys в
+      настройках.
+- [ ] Реализовать logout и account recovery.
 - [x] Создать WinUI 3 shell и OIDC PKCE client foundation.
 - [x] Создать Android Compose shell и OIDC PKCE client foundation.
+- [x] Добавить защищённую проверку native-сессии и автоматическое обновление
+      токенов на Windows и Android.
 - [ ] Добавить нативные `en-US`/`ru-RU` ресурсы, language settings и `pnpm i18n:check`.
 - [ ] Добавить secure token storage и logout-all-devices.
 - [ ] Проверить один аккаунт на Windows и Android.

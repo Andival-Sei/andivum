@@ -21,12 +21,13 @@ class AuthManager(context: Context) {
     private val issuer = BuildConfig.API_BASE_URL
     private val authorizationService = AuthorizationService(appContext)
     private val stateStore = SecureAuthStateStore(appContext)
+    private val sessionApiClient = SessionApiClient(issuer)
     private var state = stateStore.read() ?: AuthState()
 
     fun startSignIn(onReady: (Intent) -> Unit, onError: (String) -> Unit) {
         AuthorizationServiceConfiguration.fetchFromIssuer(Uri.parse(issuer)) { configuration, exception ->
             if (configuration == null) {
-                onError(exception?.errorDescription ?: "OIDC discovery failed")
+                onError(exception?.errorDescription ?: appContext.getString(R.string.auth_discovery_failed))
                 return@fetchFromIssuer
             }
 
@@ -36,7 +37,7 @@ class AuthManager(context: Context) {
                 ResponseTypeValues.CODE,
                 Uri.parse(redirectUri),
             )
-                .setScope("openid profile")
+                .setScope("openid profile offline_access")
                 .setCodeVerifier(Pkce.createVerifier())
                 .build()
             onReady(authorizationService.getAuthorizationRequestIntent(request))
@@ -54,16 +55,71 @@ class AuthManager(context: Context) {
                 state.update(tokenResponse, tokenException)
                 stateStore.write(state)
                 onComplete(
-                    if (tokenException == null) "Signed in with passkey" else
-                        tokenException.errorDescription ?: "Token exchange failed",
+                    if (tokenException == null) appContext.getString(R.string.auth_signed_in) else
+                        tokenException.errorDescription ?: appContext.getString(R.string.auth_token_exchange_failed),
                 )
             }
         } else {
-            onComplete(exception?.errorDescription ?: "Authorization failed")
+            onComplete(exception?.errorDescription ?: appContext.getString(R.string.auth_failed))
         }
     }
 
     fun isSignedIn(): Boolean = state.isAuthorized
+
+    fun validateSession(onComplete: (Result<SessionResponse>) -> Unit) {
+        state.performActionWithFreshTokens(authorizationService) { accessToken, _, exception ->
+            stateStore.write(state)
+            if (exception != null || accessToken.isNullOrBlank()) {
+                onComplete(
+                    Result.failure(
+                        exception ?: IllegalStateException("No access token is available."),
+                    ),
+                )
+                return@performActionWithFreshTokens
+            }
+
+            validateWithAccessToken(accessToken, onComplete)
+        }
+    }
+
+    private fun validateWithAccessToken(
+        accessToken: String,
+        onComplete: (Result<SessionResponse>) -> Unit,
+    ) {
+        Thread {
+            try {
+                onComplete(Result.success(sessionApiClient.getCurrentSession(accessToken)))
+            } catch (exception: SessionUnauthorizedException) {
+                refreshAfterUnauthorized(onComplete)
+            } catch (exception: Exception) {
+                onComplete(Result.failure(exception))
+            }
+        }.start()
+    }
+
+    private fun refreshAfterUnauthorized(onComplete: (Result<SessionResponse>) -> Unit) {
+        val refreshRequest = try {
+            state.createTokenRefreshRequest()
+        } catch (exception: Exception) {
+            onComplete(Result.failure(exception))
+            return
+        }
+
+        authorizationService.performTokenRequest(refreshRequest) { tokenResponse, tokenException ->
+            state.update(tokenResponse, tokenException)
+            stateStore.write(state)
+            if (tokenException != null || tokenResponse == null || state.accessToken.isNullOrBlank()) {
+                onComplete(
+                    Result.failure(
+                        tokenException ?: IllegalStateException("Refresh did not return an access token."),
+                    ),
+                )
+                return@performTokenRequest
+            }
+
+            validateWithAccessToken(state.accessToken!!, onComplete)
+        }
+    }
 
     fun signOut() {
         state = AuthState()

@@ -1,7 +1,35 @@
 <resources>
     <string name="app_name">Andivum</string>
-    <string name="sign_in">Continue with passkey</string>
+    <string name="sign_in">Sign in or create an account</string>
     <string name="sign_out">Sign out</string>
     <string name="welcome">Sign in once to access your tasks and finances on every device.</string>
     <string name="not_signed_in">Not signed in</string>
+    <string name="auth_eyebrow">Your personal system</string>
+    <string name="auth_title">A calmer place for everything you manage.</string>
+    <string name="auth_subtitle">Keep tasks, money and future modules together, with a native experience on every device.</string>
+    <string name="auth_card_title">Sign in or create an account</string>
+    <string name="auth_card_body">Use the system browser to create an account or sign in with email and password. You can connect a passkey later in settings.</string>
+    <string name="auth_security_note">Your password is entered only on the secure sign-in page and is never sent to the app.</string>
+    <string name="auth_waiting">Waiting for sign-in in the system browser…</string>
+    <string name="auth_cancelled">Sign-in was cancelled.</string>
+    <string name="auth_discovery_failed">The sign-in service could not be reached.</string>
+    <string name="auth_token_exchange_failed">Sign-in could not be completed.</string>
+    <string name="auth_failed">Sign-in was not completed.</string>
+    <string name="auth_signed_in">Signed in</string>
+    <string name="auth_session_verified">Server verified your account.</string>
+    <string name="auth_session_unavailable">The server could not verify this session. Please sign in again when you are online.</string>
+    <string name="dashboard_overview">Overview</string>
+    <string name="dashboard_eyebrow">Your space is ready</string>
+    <string name="dashboard_title">Make room for what matters today.</string>
+    <string name="dashboard_body">This is the starting point for your personal system. Your modules will live here as they become useful.</string>
+    <string name="dashboard_modules">Your modules</string>
+    <string name="dashboard_footer">More connected areas will appear here over time.</string>
+    <string name="module_tasks_title">Tasks</string>
+    <string name="module_tasks_body">Capture, plan and finish the things that matter.</string>
+    <string name="module_finance_title">Finance</string>
+    <string name="module_finance_body">See your money clearly and make better decisions.</string>
+    <string name="module_coming_soon">Coming next</string>
+    <string name="navigation_overview">Overview</string>
+    <string name="navigation_tasks">Tasks</string>
+    <string name="navigation_more">Settings</string>
 </resources>
