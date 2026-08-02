@@ -3,7 +3,7 @@
 - Связанная spec:
   `docs/superpowers/specs/2026-08-02-autonomous-development-design.md`
 - Ветка: `main` (документальный foundation до включения feature-branch policy)
-- Статус: in-progress
+- Статус: completed
 
 ## Задачи
 
@@ -12,7 +12,7 @@
 3. [x] Через TDD реализовать `pnpm run doctor` с machine-readable режимом.
 4. [x] Проверить фактический Windows/Android toolchain.
 5. [x] Обновить foundation checks и roadmap.
-6. [ ] Запустить локальные проверки; commit, push и CI завершают delivery.
+6. [x] Запустить локальные проверки, commit, push и CI.
 
 ## Проверки
 
