@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="AuthEyebrow.Text"><value>Ваша личная система</value></data>
+  <data name="AuthTitle.Text"><value>Спокойное место для всего, чем вы управляете.</value></data>
+  <data name="AuthSubtitle.Text"><value>Задачи, финансы и будущие модули собраны вместе — с нативным опытом на каждом устройстве.</value></data>
+  <data name="AuthCardTitle.Text"><value>Вход без пароля</value></data>
+  <data name="AuthCardBody.Text"><value>Используйте passkey, которым управляет ваше устройство. Andivum не просит и не хранит пароль.</value></data>
+  <data name="AuthPasskeyButton.Content"><value>Войти с passkey</value></data>
+  <data name="AuthSecurityNote.Text"><value>Passkeys защищены блокировкой устройства и остаются в защищённом хранилище учётных данных.</value></data>
+  <data name="NavigationOverview.Content"><value>Обзор</value></data>
+  <data name="NavigationTasks.Content"><value>Задачи</value></data>
+  <data name="NavigationFinance.Content"><value>Финансы</value></data>
+  <data name="DashboardEyebrow.Text"><value>Ваше пространство готово</value></data>
+  <data name="DashboardTitle.Text"><value>Освободите место для важного сегодня.</value></data>
+  <data name="DashboardBody.Text"><value>Это отправная точка вашей личной системы. Модули будут появляться здесь по мере развития приложения.</value></data>
+  <data name="DashboardHint.Text"><value>Со временем здесь появятся новые связанные области.</value></data>
+  <data name="DashboardModules.Text"><value>Ваши модули</value></data>
+  <data name="TasksCardTitle.Text"><value>Задачи</value></data>
+  <data name="TasksCardBody.Text"><value>Фиксируйте, планируйте и завершайте важные дела.</value></data>
+  <data name="FinanceCardTitle.Text"><value>Финансы</value></data>
+  <data name="FinanceCardBody.Text"><value>Смотрите на деньги яснее и принимайте более взвешенные решения.</value></data>
+  <data name="ModuleComingSoon.Text"><value>Скоро</value></data>
+  <data name="SignOutButton.Content"><value>Выйти</value></data>
+  <data name="AuthStatusNotSignedIn"><value>Не авторизован</value></data>
+  <data name="AuthStatusOpening"><value>Открываем защищённый вход…</value></data>
+  <data name="AuthStatusBrowser"><value>Завершите вход с passkey в системном браузере.</value></data>
+  <data name="AuthStatusSignedIn"><value>Вход выполнен с passkey</value></data>
+  <data name="AuthStatusSignedOut"><value>Вы вышли из аккаунта.</value></data>
+</root>

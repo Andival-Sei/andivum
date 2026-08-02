@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="AuthEyebrow.Text"><value>Your personal system</value></data>
+  <data name="AuthTitle.Text"><value>A calmer place for everything you manage.</value></data>
+  <data name="AuthSubtitle.Text"><value>Keep tasks, money and future modules together, with a native experience on every device.</value></data>
+  <data name="AuthCardTitle.Text"><value>Sign in without a password</value></data>
+  <data name="AuthCardBody.Text"><value>Use a passkey managed by your device. Andivum never needs to see or store a password.</value></data>
+  <data name="AuthPasskeyButton.Content"><value>Continue with passkey</value></data>
+  <data name="AuthSecurityNote.Text"><value>Passkeys are protected by your device screen lock and stay in the secure credential manager.</value></data>
+  <data name="NavigationOverview.Content"><value>Overview</value></data>
+  <data name="NavigationTasks.Content"><value>Tasks</value></data>
+  <data name="NavigationFinance.Content"><value>Finance</value></data>
+  <data name="DashboardEyebrow.Text"><value>Your space is ready</value></data>
+  <data name="DashboardTitle.Text"><value>Make room for what matters today.</value></data>
+  <data name="DashboardBody.Text"><value>This is the starting point for your personal system. Your modules will live here as they become useful.</value></data>
+  <data name="DashboardHint.Text"><value>More connected areas will appear here over time.</value></data>
+  <data name="DashboardModules.Text"><value>Your modules</value></data>
+  <data name="TasksCardTitle.Text"><value>Tasks</value></data>
+  <data name="TasksCardBody.Text"><value>Capture, plan and finish the things that matter.</value></data>
+  <data name="FinanceCardTitle.Text"><value>Finance</value></data>
+  <data name="FinanceCardBody.Text"><value>See your money clearly and make better decisions.</value></data>
+  <data name="ModuleComingSoon.Text"><value>Coming next</value></data>
+  <data name="SignOutButton.Content"><value>Sign out</value></data>
+  <data name="AuthStatusNotSignedIn"><value>Not signed in</value></data>
+  <data name="AuthStatusOpening"><value>Opening secure sign-in…</value></data>
+  <data name="AuthStatusBrowser"><value>Complete passkey sign-in in the system browser.</value></data>
+  <data name="AuthStatusSignedIn"><value>Signed in with passkey</value></data>
+  <data name="AuthStatusSignedOut"><value>You have been signed out.</value></data>
+</root>

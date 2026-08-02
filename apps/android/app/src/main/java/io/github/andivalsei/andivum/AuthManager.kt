@@ -26,7 +26,7 @@ class AuthManager(context: Context) {
     fun startSignIn(onReady: (Intent) -> Unit, onError: (String) -> Unit) {
         AuthorizationServiceConfiguration.fetchFromIssuer(Uri.parse(issuer)) { configuration, exception ->
             if (configuration == null) {
-                onError(exception?.errorDescription ?: "OIDC discovery failed")
+                onError(exception?.errorDescription ?: appContext.getString(R.string.auth_discovery_failed))
                 return@fetchFromIssuer
             }
 
@@ -54,12 +54,12 @@ class AuthManager(context: Context) {
                 state.update(tokenResponse, tokenException)
                 stateStore.write(state)
                 onComplete(
-                    if (tokenException == null) "Signed in with passkey" else
-                        tokenException.errorDescription ?: "Token exchange failed",
+                    if (tokenException == null) appContext.getString(R.string.auth_signed_in) else
+                        tokenException.errorDescription ?: appContext.getString(R.string.auth_token_exchange_failed),
                 )
             }
         } else {
-            onComplete(exception?.errorDescription ?: "Authorization failed")
+            onComplete(exception?.errorDescription ?: appContext.getString(R.string.auth_failed))
         }
     }
 
