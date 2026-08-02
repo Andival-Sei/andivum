@@ -6,7 +6,7 @@ import test from "node:test";
 const root = resolve(import.meta.dirname, "../..");
 
 test("Android password auth stays native and has a recoverable session path", async () => {
-  const [manifest, authManager, mainActivity, russianStrings] = await Promise.all([
+  const [manifest, authManager, mainActivity, russianStrings, debugNetworkConfig] = await Promise.all([
     readFile(resolve(root, "apps/android/app/src/main/AndroidManifest.xml"), "utf8"),
     readFile(
       resolve(
@@ -23,6 +23,10 @@ test("Android password auth stays native and has a recoverable session path", as
       "utf8",
     ),
     readFile(resolve(root, "apps/android/app/src/main/res/values-ru/strings.xml"), "utf8"),
+    readFile(
+      resolve(root, "apps/android/app/src/debug/res/xml/network_security_config.xml"),
+      "utf8",
+    ),
   ]);
 
   assert.doesNotMatch(manifest, /RedirectUriReceiverActivity/);
@@ -34,4 +38,5 @@ test("Android password auth stays native and has a recoverable session path", as
   assert.match(mainActivity, /onSignUp/);
   assert.match(russianStrings, /name="auth_email_label"/);
   assert.match(russianStrings, /name="auth_password_label"/);
+  assert.match(debugNetworkConfig, /cleartextTrafficPermitted="true"/);
 });

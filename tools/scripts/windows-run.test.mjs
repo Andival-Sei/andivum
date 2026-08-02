@@ -18,4 +18,8 @@ test("Windows run command uses package-aware dotnet run and cloud env file", asy
   assert.match(script, /["']run["']/);
   assert.match(script, /apps\/windows\/Andivum\.Windows\.csproj/);
   assert.match(script, /-p:Platform=x64/);
+  assert.match(script, /WinAppLaunchArgs/);
+  assert.match(script, /ANDIVUM_AUTH_PROVIDER/);
+  assert.match(script, /ANDIVUM_SUPABASE_URL/);
+  assert.match(script, /ANDIVUM_SUPABASE_PUBLISHABLE_KEY/);
 });

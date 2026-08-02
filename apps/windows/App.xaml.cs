@@ -1,3 +1,4 @@
+using Andivum_Windows.Auth;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Data;
@@ -15,6 +16,8 @@ namespace Andivum_Windows;
 /// </summary>
 public partial class App : Application
 {
+    public static AuthConfiguration? LaunchAuthConfiguration { get; private set; }
+
     /// <summary>
     /// The main application window. Use <c>App.Window</c> from any class that needs
     /// the window reference (for dialogs, pickers, interop, etc.).
@@ -50,6 +53,9 @@ public partial class App : Application
     /// <param name="args">Details about the launch request and process.</param>
     protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
     {
+        LaunchAuthConfiguration = AuthConfiguration.FromLaunchArguments(
+            args.Arguments,
+            Environment.GetEnvironmentVariable);
         Window = new MainWindow();
         DispatcherQueue = Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread();
         Window.Activate();

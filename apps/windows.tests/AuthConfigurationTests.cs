@@ -37,6 +37,21 @@ public sealed class AuthConfigurationTests
     }
 
     [Fact]
+    public void Packaged_launch_arguments_override_missing_process_environment()
+    {
+        var configuration = AuthConfiguration.FromLaunchArguments(
+            "--andivum-auth-provider=supabase " +
+            "--andivum-supabase-url=https://example.supabase.co " +
+            "--andivum-supabase-publishable-key=publishable-key",
+            _ => null);
+
+        Assert.NotNull(configuration);
+        Assert.Equal(AuthProvider.Supabase, configuration.Provider);
+        Assert.Equal("https://example.supabase.co", configuration.SupabaseUrl);
+        Assert.Equal("publishable-key", configuration.SupabasePublishableKey);
+    }
+
+    [Fact]
     public void Auth0_configuration_is_rejected_after_the_migration()
     {
         var values = new Dictionary<string, string?>

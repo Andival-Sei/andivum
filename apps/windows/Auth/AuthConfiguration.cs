@@ -46,6 +46,53 @@ public sealed record AuthConfiguration(
                 ?? "local-publishable-key");
     }
 
+    public static AuthConfiguration? FromLaunchArguments(
+        string? arguments,
+        Func<string, string?> getEnvironmentVariable)
+    {
+        ArgumentNullException.ThrowIfNull(getEnvironmentVariable);
+
+        if (string.IsNullOrWhiteSpace(arguments))
+        {
+            return null;
+        }
+
+        var launchValues = new Dictionary<string, string?>();
+        foreach (var argument in arguments.Split(' ', StringSplitOptions.RemoveEmptyEntries))
+        {
+            if (argument.StartsWith("--andivum-auth-provider=", StringComparison.OrdinalIgnoreCase))
+            {
+                launchValues["ANDIVUM_AUTH_PROVIDER"] = argument[
+                    "--andivum-auth-provider=".Length..];
+            }
+            else if (argument.StartsWith(
+                         "--andivum-supabase-url=",
+                         StringComparison.OrdinalIgnoreCase))
+            {
+                launchValues["ANDIVUM_SUPABASE_URL"] = argument[
+                    "--andivum-supabase-url=".Length..];
+            }
+            else if (argument.StartsWith(
+                         "--andivum-supabase-publishable-key=",
+                         StringComparison.OrdinalIgnoreCase))
+            {
+                launchValues["ANDIVUM_SUPABASE_PUBLISHABLE_KEY"] = argument[
+                    "--andivum-supabase-publishable-key=".Length..];
+            }
+        }
+
+        if (launchValues.Count == 0)
+        {
+            return null;
+        }
+
+        return FromEnvironment(
+            "windows",
+            key => launchValues.TryGetValue(key, out var value)
+                ? value
+                : getEnvironmentVariable(key));
+    }
+
     private static string NormalizeSupabaseUrl(string value, string key)
     {
         if (!Uri.TryCreate(value.Trim(), UriKind.Absolute, out var uri) ||

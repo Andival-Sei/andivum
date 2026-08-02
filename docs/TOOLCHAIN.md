@@ -63,7 +63,8 @@ pnpm android:build:cloud
 
 `windows:run` запускает WinUI через package-aware `dotnet run`, поэтому служебная
 регистрация Windows App SDK создаётся автоматически. Он подхватывает `.env` и
-неотслеживаемый `.env.andivum.local`, если файл существует.
+неотслеживаемый `.env.andivum.local`, если файл существует, и передаёт публичную
+Supabase-конфигурацию упакованному приложению через launch-параметры.
 
 Windows-клиент закрепляет Windows App SDK 1.8.x. Android использует AGP 9.0.1,
 Gradle 9.1, Kotlin 2.4.0 и JDK 17+; `tools/scripts/run-android-gradle.ps1`

@@ -11,9 +11,10 @@ public partial class MainPageViewModel : ObservableObject
 
     private static SupabaseAuthClient CreateAuthClient()
     {
-        var configuration = AuthConfiguration.FromEnvironment(
-            "windows",
-            Environment.GetEnvironmentVariable);
+        var configuration = App.LaunchAuthConfiguration
+            ?? AuthConfiguration.FromEnvironment(
+                "windows",
+                Environment.GetEnvironmentVariable);
         return new SupabaseAuthClient(
             new HttpClient(),
             new TokenStore(),

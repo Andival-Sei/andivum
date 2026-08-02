@@ -17,6 +17,12 @@ for (const fileName of [".env", ".env.andivum.local"]) {
 
 Object.assign(environment, process.env);
 
+const authLaunchArguments = [
+  `--andivum-auth-provider=${environment.ANDIVUM_AUTH_PROVIDER ?? "supabase"}`,
+  `--andivum-supabase-url=${environment.ANDIVUM_SUPABASE_URL ?? "http://localhost:54321"}`,
+  `--andivum-supabase-publishable-key=${environment.ANDIVUM_SUPABASE_PUBLISHABLE_KEY ?? "local-publishable-key"}`,
+].join(" ");
+
 const result = spawnSync(
   "dotnet",
   [
@@ -24,6 +30,7 @@ const result = spawnSync(
     "--project",
     "apps/windows/Andivum.Windows.csproj",
     "-p:Platform=x64",
+    `-p:WinAppLaunchArgs=${authLaunchArguments}`,
     ...process.argv.slice(2),
   ],
   {
