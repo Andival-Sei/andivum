@@ -51,9 +51,6 @@ if ($Cloud) {
 
     $cloudProperties = [ordered]@{
         ANDIVUM_AUTH_PROVIDER = "andivumAuthProvider"
-        ANDIVUM_AUTH0_DOMAIN = "andivumAuth0Domain"
-        ANDIVUM_AUTH0_ANDROID_CLIENT_ID = "andivumAuthClientId"
-        ANDIVUM_AUTH0_ANDROID_REDIRECT_URI = "andivumAuthRedirectUri"
         ANDIVUM_SUPABASE_URL = "andivumSupabaseUrl"
         ANDIVUM_SUPABASE_PUBLISHABLE_KEY = "andivumSupabasePublishableKey"
     }

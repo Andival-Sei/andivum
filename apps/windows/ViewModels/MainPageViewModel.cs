@@ -2,16 +2,33 @@ using Andivum_Windows.Auth;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.UI.Xaml;
-using Windows.System;
 
 namespace Andivum_Windows.ViewModels;
 
 public partial class MainPageViewModel : ObservableObject
 {
-    private readonly WindowsAuthClient authClient = new();
+    private readonly SupabaseAuthClient authClient = CreateAuthClient();
+
+    private static SupabaseAuthClient CreateAuthClient()
+    {
+        var configuration = AuthConfiguration.FromEnvironment(
+            "windows",
+            Environment.GetEnvironmentVariable);
+        return new SupabaseAuthClient(
+            new HttpClient(),
+            new TokenStore(),
+            new Uri(configuration.SupabaseUrl),
+            configuration.SupabasePublishableKey);
+    }
 
     [ObservableProperty]
     public partial string Greeting { get; set; } = ProductInfo.DisplayName;
+
+    [ObservableProperty]
+    public partial string Email { get; set; } = string.Empty;
+
+    [ObservableProperty]
+    public partial string Password { get; set; } = string.Empty;
 
     [ObservableProperty]
     public partial bool IsSignedIn { get; set; }
@@ -30,7 +47,7 @@ public partial class MainPageViewModel : ObservableObject
         ? Visibility.Visible
         : Visibility.Collapsed;
 
-    public bool IsSignInEnabled => !IsBusy;
+    public bool IsAuthActionEnabled => !IsBusy;
 
     public MainPageViewModel()
     {
@@ -67,20 +84,44 @@ public partial class MainPageViewModel : ObservableObject
     [RelayCommand]
     private async Task SignInAsync()
     {
+        await RunAuthOperationAsync(
+            () => authClient.SignInAsync(Email, Password));
+    }
+
+    [RelayCommand]
+    private async Task SignUpAsync()
+    {
+        await RunAuthOperationAsync(
+            () => authClient.SignUpAsync(Email, Password));
+    }
+
+    private async Task RunAuthOperationAsync(
+        Func<Task<AuthOperationResult>> operation)
+    {
         if (IsBusy)
         {
             return;
         }
 
         IsBusy = true;
-        SessionStatus = UiStrings.Get("AuthStatusOpening");
+        SessionStatus = UiStrings.Get("AuthStatusWorking");
         try
         {
-            await authClient.BeginSignInAsync();
-            SessionStatus = UiStrings.Get("AuthStatusBrowser");
+            var result = await operation();
+            if (!result.SessionCreated)
+            {
+                SetSession(false);
+                SessionStatus = UiStrings.Get("AuthStatusEmailConfirmation");
+                return;
+            }
+
+            await authClient.GetCurrentSessionAsync();
+            SetSession(true);
+            SessionStatus = UiStrings.Get("AuthStatusVerified");
         }
         catch (Exception exception)
         {
+            SetSession(false);
             SessionStatus = exception.Message;
         }
         finally
@@ -90,49 +131,17 @@ public partial class MainPageViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void SignOut()
+    private async Task SignOutAsync()
     {
-        authClient.SignOut();
+        await authClient.SignOutAsync();
         SetSession(false);
         SessionStatus = UiStrings.Get("AuthStatusSignedOut");
     }
 
     [RelayCommand]
-    private async Task OpenAccountSettingsAsync()
+    private void OpenAccountSettings()
     {
-        if (authClient.Configuration.UsesSupabase)
-        {
-            SessionStatus = UiStrings.Get("AuthStatusSettingsUnavailable");
-            return;
-        }
-
-        if (!await Launcher.LaunchUriAsync(
-                new Uri($"{authClient.Configuration.Issuer.TrimEnd('/')}/Account/Settings")))
-        {
-            SessionStatus = UiStrings.Get("AuthStatusSessionUnavailable");
-        }
-    }
-
-    public async Task HandleCallbackAsync(Uri uri)
-    {
-        try
-        {
-            if (await authClient.HandleCallbackAsync(uri))
-            {
-                await authClient.GetCurrentSessionAsync();
-                SetSession(true);
-                SessionStatus = UiStrings.Get("AuthStatusVerified");
-            }
-        }
-        catch (Exception exception)
-        {
-            SetSession(authClient.CurrentSession is not null);
-            SessionStatus = exception.Message;
-        }
-        finally
-        {
-            IsBusy = false;
-        }
+        SessionStatus = UiStrings.Get("AuthStatusSettingsUnavailable");
     }
 
     partial void OnIsSignedInChanged(bool value)
@@ -143,7 +152,7 @@ public partial class MainPageViewModel : ObservableObject
 
     partial void OnIsBusyChanged(bool value)
     {
-        OnPropertyChanged(nameof(IsSignInEnabled));
+        OnPropertyChanged(nameof(IsAuthActionEnabled));
     }
 
     private void SetSession(bool signedIn)

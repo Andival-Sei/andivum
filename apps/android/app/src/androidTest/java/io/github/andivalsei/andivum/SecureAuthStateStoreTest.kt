@@ -3,7 +3,6 @@ package io.github.andivalsei.andivum
 import android.content.Context
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import net.openid.appauth.AuthState
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Test
@@ -13,18 +12,24 @@ import java.security.KeyStore
 @RunWith(AndroidJUnit4::class)
 class SecureAuthStateStoreTest {
     @Test
-    fun stores_and_reads_auth_state_with_android_keystore() {
+    fun stores_and_reads_supabase_tokens_with_android_keystore() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         deleteStoredStateAndKey(context)
         val store = SecureAuthStateStore(context)
-        val expected = AuthState().jsonSerializeString()
+        val expected = SupabaseTokenSet(
+            accessToken = "access-token",
+            refreshToken = "refresh-token",
+            tokenType = "Bearer",
+            expiresIn = 3600,
+            issuedAtEpochSeconds = 1_754_130_000,
+        )
 
         try {
-            store.write(AuthState())
+            store.write(expected)
 
             val restored = store.read()
             assertNotNull(restored)
-            assertEquals(expected, restored!!.jsonSerializeString())
+            assertEquals(expected, restored)
         } finally {
             deleteStoredStateAndKey(context)
         }

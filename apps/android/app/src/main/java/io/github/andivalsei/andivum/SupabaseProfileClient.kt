@@ -11,12 +11,12 @@ class SupabaseProfileClient(
         url.openConnection() as HttpURLConnection
     },
 ) {
-    fun getCurrentSession(idToken: String): SessionResponse {
-        require(idToken.isNotBlank()) { "Auth0 ID token is required." }
+    fun getCurrentSession(accessToken: String): SessionResponse {
+        require(accessToken.isNotBlank()) { "Supabase access token is required." }
 
         val profileEndpoint =
-            "${supabaseUrl.trimEnd('/')}/rest/v1/app_profiles?select=id&limit=1"
-        val existing = request(profileEndpoint, "GET", idToken)
+            "${supabaseUrl.trimEnd('/')}/rest/v1/app_profiles?select=id,user_id&limit=1"
+        val existing = request(profileEndpoint, "GET", accessToken)
         if (existing.statusCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
             throw SessionUnauthorizedException()
         }
@@ -28,9 +28,9 @@ class SupabaseProfileClient(
 
         parseFirstProfile(existing.body)?.let { return it }
 
-        val created = request(profileEndpoint, "POST", idToken, "{}")
+        val created = request(profileEndpoint, "POST", accessToken, "{}")
         if (created.statusCode == HttpURLConnection.HTTP_CONFLICT) {
-            return getCurrentSession(idToken)
+            return getCurrentSession(accessToken)
         }
         if (created.statusCode !in 200..299) {
             throw IllegalStateException(
@@ -47,13 +47,13 @@ class SupabaseProfileClient(
     private fun request(
         endpoint: String,
         method: String,
-        idToken: String,
+        accessToken: String,
         body: String? = null,
     ): Response {
         val connection = openConnection(URL(endpoint)).apply {
             requestMethod = method
             setRequestProperty("apikey", publishableKey)
-            setRequestProperty("Authorization", "Bearer $idToken")
+            setRequestProperty("Authorization", "Bearer $accessToken")
             connectTimeout = 10_000
             readTimeout = 10_000
             if (method == "POST") {
@@ -90,9 +90,10 @@ class SupabaseProfileClient(
             return null
         }
 
-        val id = profiles.getJSONObject(0).getString("id")
-        require(id.isNotBlank()) { "Supabase profile has no stable id." }
-        return SessionResponse(id, authenticated = true)
+        val profile = profiles.getJSONObject(0)
+        val userId = profile.getString("user_id")
+        require(userId.isNotBlank()) { "Supabase profile has no stable user id." }
+        return SessionResponse(userId, authenticated = true)
     }
 
     private data class Response(

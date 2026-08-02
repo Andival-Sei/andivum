@@ -49,11 +49,24 @@
                         <StackPanel Spacing="14">
                             <TextBlock x:Uid="AuthCardTitle" FontSize="22" FontWeight="SemiBold" />
                             <TextBlock x:Uid="AuthCardBody" Style="{StaticResource BodyTextBlockStyle}" TextWrapping="Wrap" />
+                            <TextBox
+                                x:Uid="AuthEmailBox"
+                                Text="{x:Bind ViewModel.Email, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                IsEnabled="{x:Bind ViewModel.IsAuthActionEnabled, Mode=OneWay}" />
+                            <PasswordBox
+                                x:Uid="AuthPasswordBox"
+                                x:Name="AuthPasswordBox"
+                                PasswordChanged="OnPasswordChanged"
+                                IsEnabled="{x:Bind ViewModel.IsAuthActionEnabled, Mode=OneWay}" />
                             <Button
-                                x:Uid="AuthPasskeyButton"
+                                x:Uid="SignInButton"
                                 Command="{x:Bind ViewModel.SignInCommand}"
-                                IsEnabled="{x:Bind ViewModel.IsSignInEnabled, Mode=OneWay}"
-                                HorizontalAlignment="Left"
+                                IsEnabled="{x:Bind ViewModel.IsAuthActionEnabled, Mode=OneWay}"
+                                Padding="24,12" />
+                            <Button
+                                x:Uid="SignUpButton"
+                                Command="{x:Bind ViewModel.SignUpCommand}"
+                                IsEnabled="{x:Bind ViewModel.IsAuthActionEnabled, Mode=OneWay}"
                                 Padding="24,12" />
                         </StackPanel>
                     </Border>

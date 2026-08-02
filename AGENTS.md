@@ -66,8 +66,10 @@
 ## Безопасность
 
 - Не коммить секреты, access/refresh tokens, signing keys и реальные `.env`.
-- Аутентификация нативных клиентов использует Authorization Code + PKCE через
-  системный браузер. Не используй embedded WebView для входа.
+- Email/password-аутентификация нативных клиентов выполняется напрямую через
+  Supabase Auth API по HTTPS, без браузера и embedded WebView.
+- Внешний OAuth и passkeys могут использовать системный браузер или системный
+  credential UI в отдельных задачах; embedded WebView для входа запрещён.
 - Passkeys требуют HTTPS и явно заданного Relying Party ID в production.
 - Токены хранятся только в защищённом хранилище ОС.
 - Интеграционные OAuth-токены шифруются на сервере и не логируются.

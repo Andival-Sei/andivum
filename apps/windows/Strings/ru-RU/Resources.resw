@@ -4,9 +4,12 @@
   <data name="AuthTitle.Text"><value>Спокойное место для всего, чем вы управляете.</value></data>
   <data name="AuthSubtitle.Text"><value>Задачи, финансы и будущие модули собраны вместе — с нативным опытом на каждом устройстве.</value></data>
   <data name="AuthCardTitle.Text"><value>Войти или зарегистрироваться</value></data>
-  <data name="AuthCardBody.Text"><value>В браузере можно создать аккаунт или войти по email и паролю. Passkey можно подключить позже в настройках.</value></data>
-  <data name="AuthPasskeyButton.Content"><value>Войти или зарегистрироваться</value></data>
-  <data name="AuthSecurityNote.Text"><value>Пароль вводится только на защищённой странице входа и не передаётся приложению.</value></data>
+  <data name="AuthCardBody.Text"><value>Создайте аккаунт или войдите прямо в Andivum по email и паролю. Passkey можно подключить позже в настройках.</value></data>
+  <data name="AuthEmailBox.Header"><value>Email</value></data>
+  <data name="AuthPasswordBox.Header"><value>Пароль</value></data>
+  <data name="SignInButton.Content"><value>Войти</value></data>
+  <data name="SignUpButton.Content"><value>Создать аккаунт</value></data>
+  <data name="AuthSecurityNote.Text"><value>Пароль передаётся только по защищённому соединению и не сохраняется приложением.</value></data>
   <data name="NavigationOverview.Content"><value>Обзор</value></data>
   <data name="NavigationTasks.Content"><value>Задачи</value></data>
   <data name="NavigationFinance.Content"><value>Финансы</value></data>
@@ -23,8 +26,8 @@
   <data name="AccountSettingsButton.Content"><value>Настройки аккаунта</value></data>
   <data name="SignOutButton.Content"><value>Выйти</value></data>
   <data name="AuthStatusNotSignedIn"><value>Не авторизован</value></data>
-  <data name="AuthStatusOpening"><value>Открываем защищённый вход…</value></data>
-  <data name="AuthStatusBrowser"><value>Завершите вход или регистрацию в системном браузере.</value></data>
+  <data name="AuthStatusWorking"><value>Выполняем защищённый вход…</value></data>
+  <data name="AuthStatusEmailConfirmation"><value>Проверьте почту, подтвердите аккаунт и затем войдите.</value></data>
   <data name="AuthStatusSignedIn"><value>Вход выполнен</value></data>
   <data name="AuthStatusSignedOut"><value>Вы вышли из аккаунта.</value></data>
   <data name="AuthStatusChecking"><value>Проверяем защищённую сессию…</value></data>

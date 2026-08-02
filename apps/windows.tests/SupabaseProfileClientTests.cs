@@ -8,38 +8,33 @@ namespace Andivum.Windows.Tests;
 public sealed class SupabaseProfileClientTests
 {
     [Fact]
-    public async Task It_bootstraps_a_profile_without_sending_an_owner_subject()
+    public async Task It_bootstraps_a_profile_with_the_supabase_access_token()
     {
-        var now = new DateTimeOffset(2026, 8, 2, 12, 0, 0, TimeSpan.Zero);
         var store = new FakeTokenStore(
             new TokenSet(
                 "access-token",
                 "refresh-token",
                 "Bearer",
                 300,
-                "openid profile offline_access",
-                now,
-                "id-token"));
+                null,
+                DateTimeOffset.UtcNow));
         var handler = new SupabaseHandler();
         using var httpClient = new HttpClient(handler);
         var client = new SupabaseProfileClient(
             httpClient,
             store,
-            "auth0-client",
-            new Uri("https://dev-example.eu.auth0.com/oauth/token"),
             new Uri("https://example.supabase.co"),
-            "publishable-key",
-            () => now);
+            "publishable-key");
 
         var session = await client.GetCurrentSessionAsync();
 
-        Assert.Equal("profile-123", session.UserId);
+        Assert.Equal("user-123", session.UserId);
         Assert.True(session.Authenticated);
         Assert.Equal(2, handler.Requests.Count);
         Assert.Equal("publishable-key", handler.Requests[0].Headers.GetValues("apikey").Single());
-        Assert.Equal("Bearer id-token", handler.Requests[0].Headers.Authorization?.ToString());
-        var body = await handler.Requests[1].Content!.ReadAsStringAsync();
-        Assert.DoesNotContain("auth0_subject", body, StringComparison.Ordinal);
+        Assert.Equal("Bearer access-token", handler.Requests[0].Headers.Authorization?.ToString());
+        Assert.Equal("{}", handler.RequestBodies[0]);
+        Assert.DoesNotContain("auth0_subject", handler.RequestBodies[0], StringComparison.Ordinal);
     }
 
     private sealed class FakeTokenStore(TokenSet? initial) : ITokenStore
@@ -57,11 +52,17 @@ public sealed class SupabaseProfileClientTests
     {
         public List<HttpRequestMessage> Requests { get; } = [];
 
+        public List<string> RequestBodies { get; } = [];
+
         protected override Task<HttpResponseMessage> SendAsync(
             HttpRequestMessage request,
             CancellationToken cancellationToken)
         {
             Requests.Add(request);
+            if (request.Content is not null)
+            {
+                RequestBodies.Add(request.Content.ReadAsStringAsync().GetAwaiter().GetResult());
+            }
             if (request.Method == HttpMethod.Get)
             {
                 return Task.FromResult(JsonResponse(HttpStatusCode.OK, "[]"));
@@ -69,7 +70,7 @@ public sealed class SupabaseProfileClientTests
 
             return Task.FromResult(JsonResponse(
                 HttpStatusCode.Created,
-                "[{\"id\":\"profile-123\",\"auth0_subject\":\"auth0|alice\"}]"));
+                "[{\"id\":\"profile-123\",\"user_id\":\"user-123\"}]"));
         }
 
         private static HttpResponseMessage JsonResponse(

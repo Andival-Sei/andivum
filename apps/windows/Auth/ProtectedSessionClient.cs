@@ -9,6 +9,10 @@ public sealed record SessionResponse(
     [property: JsonPropertyName("userId")] string UserId,
     [property: JsonPropertyName("authenticated")] bool Authenticated);
 
+public sealed class SessionUnauthorizedException : InvalidOperationException
+{
+}
+
 public sealed class ProtectedSessionClient
 {
     private static readonly TimeSpan RefreshSkew = TimeSpan.FromSeconds(30);

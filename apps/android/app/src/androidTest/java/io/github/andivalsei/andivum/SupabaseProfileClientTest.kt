@@ -12,7 +12,7 @@ import org.junit.Test
 
 class SupabaseProfileClientTest {
     @Test
-    fun bootstraps_a_profile_with_the_auth0_id_token() {
+    fun bootstraps_a_profile_with_the_supabase_access_token() {
         val connections = ConnectionQueue().apply {
             add(
                 FakeHttpURLConnection(
@@ -25,7 +25,7 @@ class SupabaseProfileClientTest {
                 FakeHttpURLConnection(
                     URL("https://example.supabase.co/rest/v1/app_profiles"),
                     HttpURLConnection.HTTP_CREATED,
-                    "[{\"id\":\"profile-123\"}]",
+                    "[{\"id\":\"profile-123\",\"user_id\":\"user-123\"}]",
                 ),
             )
         }
@@ -34,13 +34,13 @@ class SupabaseProfileClientTest {
             "publishable-key",
         ) { connections.removeFirst() }
 
-        val session = client.getCurrentSession("id-token")
+        val session = client.getCurrentSession("access-token")
 
-        assertEquals("profile-123", session.userId)
+        assertEquals("user-123", session.userId)
         assertTrue(session.authenticated)
         val createRequest = connections.lastReturned!!
         assertEquals("publishable-key", createRequest.capturedProperties["apikey"])
-        assertEquals("Bearer id-token", createRequest.capturedProperties["Authorization"])
+        assertEquals("Bearer access-token", createRequest.capturedProperties["Authorization"])
         assertEquals("{}", createRequest.output.toString(StandardCharsets.UTF_8.name()))
     }
 

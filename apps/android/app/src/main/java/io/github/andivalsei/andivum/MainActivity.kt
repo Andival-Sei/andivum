@@ -1,11 +1,8 @@
 package io.github.andivalsei.andivum
 
-import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,6 +19,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AccountBalanceWallet
@@ -36,6 +34,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -52,50 +51,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 
 class MainActivity : ComponentActivity() {
     private lateinit var authManager: AuthManager
     private var uiState by mutableStateOf(AuthShellState(isSignedIn = false))
-    private val authorizationLauncher = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult(),
-    ) { result ->
-        val data = result.data
-        if (data == null) {
-            authManager.clearSession()
-            uiState = uiState.recoverAfterAuthFailure(getString(R.string.auth_cancelled))
-            return@registerForActivityResult
-        }
-
-        authManager.handleCallback(data) { status ->
-            if (!authManager.isSignedIn()) {
-                authManager.clearSession()
-                runOnUiThread {
-                    uiState = uiState.recoverAfterAuthFailure(status)
-                }
-                return@handleCallback
-            }
-
-            authManager.validateSession { result ->
-                runOnUiThread {
-                    uiState = result.fold(
-                        onSuccess = {
-                            uiState.copy(
-                                isSignedIn = true,
-                                isBusy = false,
-                                message = null,
-                                sessionStatus = getString(R.string.auth_session_verified),
-                            )
-                        },
-                        onFailure = {
-                            uiState.recoverAfterAuthFailure(
-                                getString(R.string.auth_session_unavailable),
-                            )
-                        },
-                    )
-                }
-            }
-        }
-    }
+    private var email by mutableStateOf("")
+    private var password by mutableStateOf("")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -106,8 +69,12 @@ class MainActivity : ComponentActivity() {
             AndivumTheme {
                 AndivumApp(
                     state = uiState,
+                    email = email,
+                    password = password,
+                    onEmailChanged = { email = it },
+                    onPasswordChanged = { password = it },
                     onSignIn = ::beginSignIn,
-                    onCancelSignIn = ::cancelSignIn,
+                    onSignUp = ::beginSignUp,
                     onSignOut = ::signOut,
                     onOpenAccountSettings = ::openAccountSettings,
                 )
@@ -140,29 +107,92 @@ class MainActivity : ComponentActivity() {
         super.onDestroy()
     }
 
-    private fun beginSignIn() {
+    private fun beginSignIn(email: String, password: String) {
         if (uiState.isBusy) return
         uiState = uiState.copy(
             isBusy = true,
             message = null,
         )
-        authManager.startSignIn(
-            onReady = { intent -> authorizationLauncher.launch(intent) },
-            onError = { message ->
-                runOnUiThread {
-                    uiState = uiState.copy(
-                        isBusy = false,
-                        message = message,
-                    )
-                }
-            },
-        )
+        authManager.signIn(email, password) { result ->
+            runOnUiThread {
+                result.fold(
+                    onSuccess = { operation ->
+                        if (operation.sessionCreated) {
+                            validateSession()
+                        } else {
+                            uiState = uiState.copy(
+                                isBusy = false,
+                                message = getString(R.string.auth_email_confirmation_required),
+                            )
+                        }
+                    },
+                    onFailure = { exception ->
+                        uiState = uiState.recoverAfterAuthFailure(
+                            exception.message ?: getString(R.string.auth_failed),
+                        )
+                    },
+                )
+            }
+        }
     }
 
-    private fun cancelSignIn() {
-        if (!uiState.isBusy) return
-        authManager.clearSession()
-        uiState = uiState.recoverAfterAuthFailure(getString(R.string.auth_cancelled))
+    private fun beginSignUp(email: String, password: String) {
+        if (uiState.isBusy) return
+        uiState = uiState.copy(
+            isBusy = true,
+            message = null,
+        )
+        authManager.signUp(email, password) { result ->
+            runOnUiThread {
+                result.fold(
+                    onSuccess = { operation ->
+                        if (operation.sessionCreated) {
+                            validateSession()
+                        } else {
+                            uiState = uiState.copy(
+                                isBusy = false,
+                                message = getString(R.string.auth_email_confirmation_required),
+                            )
+                        }
+                    },
+                    onFailure = { exception ->
+                        uiState = uiState.recoverAfterAuthFailure(
+                            exception.message ?: getString(R.string.auth_failed),
+                        )
+                    },
+                )
+            }
+        }
+    }
+
+    private fun validateSession() {
+        authManager.validateSession { result ->
+            runOnUiThread {
+                uiState = result.fold(
+                    onSuccess = {
+                        uiState.copy(
+                            isSignedIn = true,
+                            isBusy = false,
+                            message = null,
+                            sessionStatus = getString(R.string.auth_session_verified),
+                        )
+                    },
+                    onFailure = {
+                        uiState.recoverAfterAuthFailure(
+                            getString(R.string.auth_session_unavailable),
+                        )
+                    },
+                )
+            }
+        }
+    }
+
+    private fun beginSignIn() {
+        beginSignIn(email, password)
+    }
+
+    private fun beginSignUp() {
+        beginSignUp(email, password)
     }
 
     private fun signOut() {
@@ -171,35 +201,31 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun openAccountSettings() {
-        if (authManager.authConfiguration.usesSupabase) {
-            uiState = uiState.copy(
-                message = getString(R.string.auth_settings_unavailable),
-            )
-            return
-        }
-
-        startActivity(
-            Intent(
-                Intent.ACTION_VIEW,
-                Uri.parse("${authManager.authConfiguration.issuer}/Account/Settings"),
-            ),
-        )
+        uiState = uiState.copy(message = getString(R.string.auth_settings_unavailable))
     }
 }
 
 @Composable
 private fun AndivumApp(
     state: AuthShellState,
+    email: String,
+    password: String,
+    onEmailChanged: (String) -> Unit,
+    onPasswordChanged: (String) -> Unit,
     onSignIn: () -> Unit,
-    onCancelSignIn: () -> Unit,
+    onSignUp: () -> Unit,
     onSignOut: () -> Unit,
     onOpenAccountSettings: () -> Unit,
 ) {
     when (state.screen) {
         AuthShellScreen.SIGN_IN -> SignInScreen(
             state = state,
+            email = email,
+            password = password,
+            onEmailChanged = onEmailChanged,
+            onPasswordChanged = onPasswordChanged,
             onSignIn = onSignIn,
-            onCancelSignIn = onCancelSignIn,
+            onSignUp = onSignUp,
         )
         AuthShellScreen.DASHBOARD -> DashboardScreen(
             sessionStatus = state.sessionStatus,
@@ -212,8 +238,12 @@ private fun AndivumApp(
 @Composable
 private fun SignInScreen(
     state: AuthShellState,
+    email: String,
+    password: String,
+    onEmailChanged: (String) -> Unit,
+    onPasswordChanged: (String) -> Unit,
     onSignIn: () -> Unit,
-    onCancelSignIn: () -> Unit,
+    onSignUp: () -> Unit,
 ) {
     Surface(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -288,6 +318,29 @@ private fun SignInScreen(
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
                     )
+                    OutlinedTextField(
+                        value = email,
+                        onValueChange = onEmailChanged,
+                        enabled = !state.isBusy,
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text(stringResource(R.string.auth_email_label)) },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Email,
+                        ),
+                    )
+                    OutlinedTextField(
+                        value = password,
+                        onValueChange = onPasswordChanged,
+                        enabled = !state.isBusy,
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text(stringResource(R.string.auth_password_label)) },
+                        singleLine = true,
+                        visualTransformation = PasswordVisualTransformation(),
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Password,
+                        ),
+                    )
                     Button(
                         onClick = onSignIn,
                         enabled = !state.isBusy,
@@ -298,18 +351,17 @@ private fun SignInScreen(
                     ) {
                         Text(
                             text = stringResource(
-                                if (state.isBusy) R.string.auth_waiting else R.string.sign_in,
+                                if (state.isBusy) R.string.auth_working else R.string.sign_in,
                             ),
                             fontWeight = FontWeight.SemiBold,
                         )
                     }
-                    if (state.isBusy) {
-                        TextButton(
-                            onClick = onCancelSignIn,
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            Text(text = stringResource(R.string.auth_cancel))
-                        }
+                    TextButton(
+                        onClick = onSignUp,
+                        enabled = !state.isBusy,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text(text = stringResource(R.string.sign_up))
                     }
                 }
             }

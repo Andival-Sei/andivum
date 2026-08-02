@@ -344,14 +344,6 @@ enabled = false
 enabled = false
 # project_id = "my-firebase-project"
 
-# Use Auth0 as a third-party provider alongside Supabase Auth.
-[auth.third_party.auth0]
-enabled = true
-tenant = "dev-thwdm1brs1dhe4g2"
-tenant_region = "us"
-# Enable this only after the real Auth0 tenant is created. Auth0 must use an
-# asymmetric signing algorithm supported by Supabase Third-party Auth.
-
 # Use AWS Cognito (Amplify) as a third-party provider alongside Supabase Auth.
 [auth.third_party.aws_cognito]
 enabled = false

@@ -4,9 +4,12 @@
   <data name="AuthTitle.Text"><value>A calmer place for everything you manage.</value></data>
   <data name="AuthSubtitle.Text"><value>Keep tasks, money and future modules together, with a native experience on every device.</value></data>
   <data name="AuthCardTitle.Text"><value>Sign in or create an account</value></data>
-  <data name="AuthCardBody.Text"><value>Use the system browser to create an account or sign in with email and password. You can connect a passkey later in settings.</value></data>
-  <data name="AuthPasskeyButton.Content"><value>Sign in or create an account</value></data>
-  <data name="AuthSecurityNote.Text"><value>Your password is entered only on the secure sign-in page and is never sent to the app.</value></data>
+  <data name="AuthCardBody.Text"><value>Create an account or sign in directly in Andivum with your email and password. You can connect a passkey later in settings.</value></data>
+  <data name="AuthEmailBox.Header"><value>Email</value></data>
+  <data name="AuthPasswordBox.Header"><value>Password</value></data>
+  <data name="SignInButton.Content"><value>Sign in</value></data>
+  <data name="SignUpButton.Content"><value>Create an account</value></data>
+  <data name="AuthSecurityNote.Text"><value>Your password is sent only over a secure connection and is never stored by the app.</value></data>
   <data name="NavigationOverview.Content"><value>Overview</value></data>
   <data name="NavigationTasks.Content"><value>Tasks</value></data>
   <data name="NavigationFinance.Content"><value>Finance</value></data>
@@ -23,8 +26,8 @@
   <data name="AccountSettingsButton.Content"><value>Account settings</value></data>
   <data name="SignOutButton.Content"><value>Sign out</value></data>
   <data name="AuthStatusNotSignedIn"><value>Not signed in</value></data>
-  <data name="AuthStatusOpening"><value>Opening secure sign-in…</value></data>
-  <data name="AuthStatusBrowser"><value>Complete sign-in or registration in the system browser.</value></data>
+  <data name="AuthStatusWorking"><value>Signing you in securely…</value></data>
+  <data name="AuthStatusEmailConfirmation"><value>Check your email to confirm the account, then sign in.</value></data>
   <data name="AuthStatusSignedIn"><value>Signed in</value></data>
   <data name="AuthStatusSignedOut"><value>You have been signed out.</value></data>
   <data name="AuthStatusChecking"><value>Checking your secure session…</value></data>

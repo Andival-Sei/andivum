@@ -25,11 +25,4 @@ public sealed partial class MainWindow : Window
         RootFrame.Navigate(typeof(MainPage));
     }
 
-    public void HandleProtocolActivation(Uri uri)
-    {
-        if (RootFrame.Content is MainPage page)
-        {
-            _ = page.ViewModel.HandleCallbackAsync(uri);
-        }
-    }
 }

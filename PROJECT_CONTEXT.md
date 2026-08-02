@@ -10,8 +10,8 @@ Android. Первый пользователь — владелец проект
 ## Первый продуктовый срез
 
 1. Экран входа и регистрации.
-2. Регистрация и вход по email + паролю через Auth0 и системный браузер;
-   passkey можно подключить дополнительно в настройках аккаунта.
+2. Регистрация и вход по email + паролю через Supabase Auth прямо в нативном
+   интерфейсе; passkey можно подключить дополнительно в настройках аккаунта.
 3. Базовый модуль умных задач.
 4. Базовый модуль личных финансов.
 5. Синхронизация данных между устройствами одного пользователя.
@@ -25,16 +25,16 @@ Android. Первый пользователь — владелец проект
 
 - Windows: C# 14, .NET 10 LTS, WinUI 3, Windows App SDK stable.
 - Android: Kotlin, Jetpack Compose, Material 3, AndroidX.
-- Identity: Auth0 Database Connection + OIDC Authorization Code with PKCE.
+- Identity: Supabase Auth email/password и JWT-сессии.
 - Данные первого облачного MVP: Supabase PostgreSQL, Data API, Storage и RLS.
 - Server-side code: Supabase SQL/RPC/Edge Functions по мере необходимости;
   будущий тонкий ASP.NET Core API допускается отдельным ADR.
 - Локальные данные: SQLite; Room на Android, Microsoft.Data.Sqlite/EF Core на
   Windows.
 - API: HTTPS REST + OpenAPI, generated native clients.
-- Auth: Auth0 email/password + hosted Universal Login + OIDC/OAuth 2.0
-  Authorization Code with PKCE. Пароль вводится только в Auth0 browser surface,
-  не в native-клиенте.
+- Auth: Supabase Auth API для email/password. Пароль передаётся только по HTTPS
+  в Supabase Auth endpoint и не сохраняется приложением. Внешний OAuth и
+  passkeys могут использовать системные OS/browser API в отдельных срезах.
 - Наблюдаемость: OpenTelemetry.
 - Репозиторий: monorepo, единый command facade через `pnpm`.
 
@@ -74,18 +74,14 @@ UI, интеграция с ОС, локальное хранение и час�
 - Display name изменяем, опубликованные package IDs и passkey RP ID — нет.
 - Не строим микросервисы до измеримой потребности.
 - Не встраиваем MCP или административный backdoor в production-приложение.
-- Auth0 и Supabase выбраны для первого облачного MVP; локальный OpenIddict и
-  PostgreSQL остаются только временным dev fallback до завершения реального
-  cloud smoke-теста.
+- Supabase Auth и Supabase PostgreSQL используются как managed backend первого
+  облачного MVP. Локальный OpenIddict и PostgreSQL остаются только временным
+  dev fallback для API-тестов и не являются production identity provider.
 
 ## Текущий следующий шаг
 
-Нативные login/dashboard shells для Windows и Android уже созданы и подключены
-к конфигурируемому OIDC-flow. В dev tenant Auth0 созданы отдельные Native
-Applications Andivum Windows/Android, email/password connection, ограниченный
-Action для Supabase и включена ротация refresh-токенов. В Supabase project
-Andivum включён Auth0 Third-party Auth, применены `app_profiles` и RLS-
-миграции, а локальные публичные параметры лежат в игнорируемом
-`.env.andivum.local`. Следующий шаг — live smoke: регистрация/вход на Windows,
-затем на физическом Android и проверка одного Auth0 subject в обеих системах.
-После этого внешний smoke заканчивается и начинается Tasks vertical slice.
+Нативные login/dashboard shells для Windows и Android уже созданы. Прямой
+email/password flow через Supabase Auth API реализован, а переход
+`app_profiles` на `auth.users.id` применён к облачному проекту. Следующий шаг —
+проверить реальную регистрацию/вход/refresh одного пользователя на Windows и
+физическом Android, а затем начать Tasks vertical slice.

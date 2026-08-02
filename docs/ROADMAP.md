@@ -11,39 +11,37 @@
 - [ ] Добавить CI для Windows, Android, backend и контрактов.
 - [x] Добавить локальную PostgreSQL-инфраструктуру без production-секретов.
 - [x] Зафиксировать нативную локализацию Windows/Android и policy fallback.
-- [x] Выбрать Auth0 + Supabase как managed backend первого облачного MVP.
+- [x] Выбрать Supabase Auth + Supabase PostgreSQL как managed backend первого
+      облачного MVP.
 
 ## 1. Authentication vertical slice
 
 - [x] Создать ASP.NET Core backend и PostgreSQL migrations.
 - [x] Подключить ASP.NET Core Identity и OpenIddict.
 - [x] Зафиксировать auth API, локальный HTTPS запуск и security checks.
-- [x] Реализовать registration/sign-in с email/password и optional passkeys в
-      настройках.
-- [ ] Реализовать logout и account recovery.
-- [x] Создать WinUI 3 shell и OIDC PKCE client foundation.
-- [x] Создать Android Compose shell и OIDC PKCE client foundation.
+- [x] Реализовать registration/sign-in с email/password через Supabase Auth.
+- [ ] Добавить optional passkeys в настройках после отдельной проверки Beta API.
+- [x] Реализовать logout.
+- [ ] Реализовать account recovery.
+- [x] Создать WinUI 3 shell.
+- [x] Создать Android Compose shell.
+- [x] Добавить нативные Supabase Auth email/password signup/sign-in.
 - [x] Добавить защищённую проверку native-сессии и автоматическое обновление
-      токенов на Windows и Android.
+      Supabase-токенов на Windows и Android.
 - [ ] Добавить нативные `en-US`/`ru-RU` ресурсы, language settings и `pnpm i18n:check`.
-- [ ] Добавить secure token storage и logout-all-devices.
+- [x] Добавить secure token storage.
+- [ ] Добавить logout-all-devices.
 - [ ] Проверить один аккаунт на Windows и Android.
 
 ## 1.5. Managed authentication/data MVP
 
-- [x] Создать Auth0 tenant, Native Applications и email/password connection.
-- [x] Создать Supabase project и включить Third-party Auth для Auth0.
-- [x] Добавить Auth0 Action с `role=authenticated` в ID token.
-- [x] Подготовить конфигурацию native issuer/client IDs/callbacks для Auth0 без
-      client secrets.
-- [x] Добавить миграцию `app_profiles` с RLS по Auth0 `sub` и автоматический
-      bootstrap профиля.
-- [x] Подготовить direct Supabase profile/session flow, mocked tests и SQL RLS
-      проверку.
-- [x] Оставить OpenIddict только как явный local-dev fallback до настройки
-      внешних проектов.
-- [ ] Проверить direct Supabase profile/session flow на Windows и физическом
-      Android с реальным Auth0/Supabase project.
+- [x] Создать Supabase project и включить email/password Auth.
+- [x] Перевести `app_profiles` на `auth.users.id` и `auth.uid()` RLS.
+- [x] Реализовать direct Supabase Auth signup/sign-in/refresh/logout.
+- [ ] Проверить direct Supabase Auth flow на Windows и физическом Android.
+- [x] Убрать Auth0 из runtime, Supabase config, Actions и native application
+      config. Auth0 tenant не удаляется автоматически, чтобы не потерять его
+      данные необратимо.
 - [ ] Решить отдельным ADR, какие Tasks/Finance операции требуют RPC, Edge
       Functions или тонкого API.
 

@@ -19,6 +19,7 @@
     <Compile Include="..\windows\Auth\ProtectedSessionClient.cs" Link="Auth\ProtectedSessionClient.cs" />
     <Compile Include="..\windows\Auth\AuthConfiguration.cs" Link="Auth\AuthConfiguration.cs" />
     <Compile Include="..\windows\Auth\SupabaseProfileClient.cs" Link="Auth\SupabaseProfileClient.cs" />
+    <Compile Include="..\windows\Auth\SupabaseAuthClient.cs" Link="Auth\SupabaseAuthClient.cs" />
   </ItemGroup>
 
 </Project>

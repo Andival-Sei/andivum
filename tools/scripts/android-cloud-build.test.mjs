@@ -15,9 +15,7 @@ test("Android cloud build loads public values from the local cloud env file", as
   assert.match(script, /\[switch\]\s+\$Cloud/);
   assert.match(script, /\.env\.andivum\.local/);
   assert.match(script, /andivumAuthProvider/);
-  assert.match(script, /andivumAuth0Domain/);
-  assert.match(script, /andivumAuthClientId/);
-  assert.match(script, /andivumAuthRedirectUri/);
+  assert.doesNotMatch(script, /Auth0|auth0/i);
   assert.match(script, /andivumSupabaseUrl/);
   assert.match(script, /andivumSupabasePublishableKey/);
 });
