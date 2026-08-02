@@ -7,9 +7,6 @@ namespace Andivum.Api.Tests;
 
 public sealed class OpenIddictFlowTests
 {
-    private const string TestConnectionString =
-        "Host=localhost;Port=5433;Database=andivum_test;Username=andivum_test;Password=andivum_test_local_only";
-
     [Fact]
     public async Task Discovery_document_is_available()
     {
@@ -123,7 +120,10 @@ public sealed class OpenIddictFlowTests
             {
                 builder.UseSetting(
                     "ConnectionStrings:Postgres",
-                    TestConnectionString);
+                    Environment.GetEnvironmentVariable(
+                        "ConnectionStrings__Postgres") ??
+                    throw new InvalidOperationException(
+                        "ConnectionStrings__Postgres must be set by the dedicated test runner."));
             });
     }
 
