@@ -20,6 +20,8 @@
 - [ ] Реализовать registration/sign-in/logout с passkeys.
 - [x] Создать WinUI 3 shell и OIDC PKCE client foundation.
 - [x] Создать Android Compose shell и OIDC PKCE client foundation.
+- [x] Добавить passwordless registration surface и блокировку authorize до
+      сохранения первого passkey.
 - [ ] Добавить нативные `en-US`/`ru-RU` ресурсы, language settings и `pnpm i18n:check`.
 - [ ] Добавить secure token storage и logout-all-devices.
 - [ ] Проверить один аккаунт на Windows и Android.

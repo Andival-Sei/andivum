@@ -120,6 +120,21 @@ public sealed class OpenIddictFlowTests
         var body = await response.Content.ReadAsStringAsync();
         Assert.True(response.IsSuccessStatusCode, body);
         Assert.Contains("Continue with passkey", body);
+        Assert.Contains("Create an account with passkey", body);
+        Assert.Contains("/Account/PasskeyRegistrationStart", body);
+    }
+
+    [Fact]
+    public async Task Passkey_registration_without_csrf_is_rejected()
+    {
+        await using var factory = CreateFactory();
+        using var client = CreateHttpsClient(factory);
+
+        using var response = await client.PostAsJsonAsync(
+            "/Account/PasskeyRegistrationStart",
+            new { displayName = "Personal phone" });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [Fact]

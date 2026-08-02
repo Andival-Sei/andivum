@@ -17,10 +17,14 @@ Windows и Android. Источник машинно-читаемого конт�
 - Passkey request options используют discoverable credentials и не принимают
   username.
 - Mutating passkey endpoints защищены anti-forgery token.
+- Анонимный пользователь может создать первый аккаунт через passkey без
+  обязательной почты или пароля.
+- Pending-аккаунт не может продолжить `/connect/authorize`, пока attestation не
+  сохранит хотя бы один passkey.
 
-Регистрация нового аккаунта, восстановление аккаунта, logout-all-devices и
-полный нативный UI пока остаются следующими срезами. Поэтому на текущем этапе
-это серверный auth foundation, а не готовая пользовательская регистрация.
+Восстановление аккаунта, logout-all-devices и полный нативный UI пока остаются
+следующими срезами. Регистрация сейчас реализована на server-rendered auth
+surface и требует browser/WebAuthn smoke-теста.
 
 ## Локальный запуск
 
@@ -62,6 +66,18 @@ docker compose --env-file .env -f infra/compose/docker-compose.yml down
 6. Access и refresh tokens хранятся только в защищённом хранилище ОС.
 7. При истечении access token клиент выполняет refresh-token grant и заменяет
    старый refresh token новым.
+
+### Регистрация первого passkey
+
+1. Пользователь выбирает `Create an account with passkey` на auth surface.
+2. Сервер создаёт технический Identity account и устанавливает pending browser
+   session.
+3. Браузер выполняет WebAuthn creation ceremony.
+4. Сервер сохраняет attestation и только после этого разрешает исходный
+   authorize request.
+
+Технический username не является отображаемым именем пользователя. Recovery,
+email verification и смена имени аккаунта пока не входят в контракт.
 
 Текущие development callbacks:
 
