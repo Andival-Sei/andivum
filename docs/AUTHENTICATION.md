@@ -59,6 +59,10 @@ pnpm android:build -- -PandivumApiBaseUrl=https://localhost:7240
 Локальный HTTPS-сертификат всё равно должен быть доверен браузером и debug
 клиентом; это отдельная часть device-smoke проверки.
 
+Для debug APK добавлена только debug-конфигурация Network Security Config,
+разрешающая доверять пользовательскому CA на устройстве. Release APK эту
+настройку не получает и не ослабляет проверку сертификатов.
+
 На 2026-08-02 физический Pixel 7 Pro успешно определяется по USB, APK
 устанавливается и UI запускается. `adb reverse` работает, но AppAuth discovery
 останавливается на `Trust anchor for certification path not found`: устройство
