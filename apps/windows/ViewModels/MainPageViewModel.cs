@@ -2,6 +2,7 @@ using Andivum_Windows.Auth;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.UI.Xaml;
+using Windows.System;
 
 namespace Andivum_Windows.ViewModels;
 
@@ -94,6 +95,16 @@ public partial class MainPageViewModel : ObservableObject
         authClient.SignOut();
         SetSession(false);
         SessionStatus = UiStrings.Get("AuthStatusSignedOut");
+    }
+
+    [RelayCommand]
+    private async Task OpenAccountSettingsAsync()
+    {
+        if (!await Launcher.LaunchUriAsync(
+                new Uri($"{WindowsAuthClient.ApiBaseUrl}/Account/Settings")))
+        {
+            SessionStatus = UiStrings.Get("AuthStatusSessionUnavailable");
+        }
     }
 
     public async Task HandleCallbackAsync(Uri uri)

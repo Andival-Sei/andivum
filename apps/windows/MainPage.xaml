@@ -88,13 +88,18 @@
 
                 <ScrollViewer Grid.Column="1" HorizontalScrollBarVisibility="Disabled">
                     <StackPanel MaxWidth="920" Spacing="24">
-                        <Grid ColumnDefinitions="*,Auto">
+                        <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
                             <StackPanel Spacing="4">
                                 <TextBlock x:Uid="DashboardEyebrow" Style="{StaticResource CaptionTextBlockStyle}" />
                                 <TextBlock x:Uid="DashboardTitle" FontSize="38" FontWeight="SemiBold" TextWrapping="Wrap" />
                             </StackPanel>
                             <Button
                                 Grid.Column="1"
+                                x:Uid="AccountSettingsButton"
+                                Command="{x:Bind ViewModel.OpenAccountSettingsCommand}"
+                                HorizontalAlignment="Right" />
+                            <Button
+                                Grid.Column="2"
                                 x:Uid="SignOutButton"
                                 Command="{x:Bind ViewModel.SignOutCommand}"
                                 HorizontalAlignment="Right" />

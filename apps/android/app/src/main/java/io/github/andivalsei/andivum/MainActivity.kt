@@ -1,6 +1,7 @@
 package io.github.andivalsei.andivum
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -110,6 +111,7 @@ class MainActivity : ComponentActivity() {
                     state = uiState,
                     onSignIn = ::beginSignIn,
                     onSignOut = ::signOut,
+                    onOpenAccountSettings = ::openAccountSettings,
                 )
             }
         }
@@ -164,6 +166,15 @@ class MainActivity : ComponentActivity() {
         authManager.signOut()
         uiState = AuthShellState(isSignedIn = false)
     }
+
+    private fun openAccountSettings() {
+        startActivity(
+            Intent(
+                Intent.ACTION_VIEW,
+                Uri.parse("${BuildConfig.API_BASE_URL}/Account/Settings"),
+            ),
+        )
+    }
 }
 
 @Composable
@@ -171,12 +182,14 @@ private fun AndivumApp(
     state: AuthShellState,
     onSignIn: () -> Unit,
     onSignOut: () -> Unit,
+    onOpenAccountSettings: () -> Unit,
 ) {
     when (state.screen) {
         AuthShellScreen.SIGN_IN -> SignInScreen(state = state, onSignIn = onSignIn)
         AuthShellScreen.DASHBOARD -> DashboardScreen(
             sessionStatus = state.sessionStatus,
             onSignOut = onSignOut,
+            onOpenAccountSettings = onOpenAccountSettings,
         )
     }
 }
@@ -308,6 +321,7 @@ private data class ModulePlaceholder(
 private fun DashboardScreen(
     sessionStatus: String?,
     onSignOut: () -> Unit,
+    onOpenAccountSettings: () -> Unit,
 ) {
     val modules = listOf(
         ModulePlaceholder(
@@ -374,8 +388,7 @@ private fun DashboardScreen(
                 )
                 NavigationBarItem(
                     selected = false,
-                    enabled = false,
-                    onClick = {},
+                    onClick = onOpenAccountSettings,
                     icon = { Icon(Icons.Outlined.Settings, contentDescription = null) },
                     label = { Text(stringResource(R.string.navigation_more)) },
                 )

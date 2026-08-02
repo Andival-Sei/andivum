@@ -1,21 +1,21 @@
 <resources>
     <string name="app_name">Andivum</string>
-    <string name="sign_in">Войти с passkey</string>
+    <string name="sign_in">Войти или зарегистрироваться</string>
     <string name="sign_out">Выйти</string>
     <string name="welcome">Войдите один раз, чтобы пользоваться задачами и финансами на всех устройствах.</string>
     <string name="not_signed_in">Не авторизован</string>
     <string name="auth_eyebrow">Ваша личная система</string>
     <string name="auth_title">Спокойное место для всего, чем вы управляете.</string>
     <string name="auth_subtitle">Задачи, финансы и будущие модули собраны вместе — с нативным опытом на каждом устройстве.</string>
-    <string name="auth_card_title">Вход без пароля</string>
-    <string name="auth_card_body">Используйте passkey, которым управляет ваше устройство. Andivum не просит и не хранит пароль.</string>
-    <string name="auth_security_note">Passkeys защищены блокировкой устройства и остаются в защищённом хранилище учётных данных.</string>
-    <string name="auth_waiting">Ожидаем подтверждение passkey…</string>
+    <string name="auth_card_title">Войти или зарегистрироваться</string>
+    <string name="auth_card_body">В системном браузере можно создать аккаунт или войти по email и паролю. Passkey можно подключить позже в настройках.</string>
+    <string name="auth_security_note">Пароль вводится только на защищённой странице входа и не передаётся приложению.</string>
+    <string name="auth_waiting">Ожидаем вход в системном браузере…</string>
     <string name="auth_cancelled">Вход отменён.</string>
     <string name="auth_discovery_failed">Не удалось подключиться к сервису входа.</string>
     <string name="auth_token_exchange_failed">Не удалось завершить вход.</string>
     <string name="auth_failed">Вход не завершён.</string>
-    <string name="auth_signed_in">Вход выполнен с passkey</string>
+    <string name="auth_signed_in">Вход выполнен</string>
     <string name="auth_session_verified">Сервер подтвердил ваш аккаунт.</string>
     <string name="auth_session_unavailable">Сервер не смог подтвердить эту сессию. Войдите снова, когда будете онлайн.</string>
     <string name="dashboard_overview">Обзор</string>
@@ -31,5 +31,5 @@
     <string name="module_coming_soon">Скоро</string>
     <string name="navigation_overview">Обзор</string>
     <string name="navigation_tasks">Задачи</string>
-    <string name="navigation_more">Ещё</string>
+    <string name="navigation_more">Настройки</string>
 </resources>

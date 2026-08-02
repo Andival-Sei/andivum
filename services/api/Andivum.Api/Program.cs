@@ -17,7 +17,21 @@ var connectionString = builder.Configuration.GetConnectionString("Postgres")
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString));
 
-builder.Services.AddIdentity<ApplicationUser, IdentityRole<Guid>>()
+builder.Services.AddIdentity<ApplicationUser, IdentityRole<Guid>>(options =>
+    {
+        options.User.RequireUniqueEmail = true;
+        options.Password.RequiredLength = 12;
+        options.Password.RequireDigit = true;
+        options.Password.RequireLowercase = true;
+        options.Password.RequireUppercase = true;
+        options.Password.RequireNonAlphanumeric = true;
+        options.Password.RequiredUniqueChars = 5;
+        options.Lockout.AllowedForNewUsers = true;
+        options.Lockout.MaxFailedAccessAttempts = 5;
+        options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+        options.SignIn.RequireConfirmedAccount = false;
+        options.SignIn.RequireConfirmedEmail = false;
+    })
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
 
@@ -115,11 +129,21 @@ app.Use(async (context, next) =>
             : clientId;
     }
 
+    var codeChallenge = context.Request.Query["code_challenge"].ToString();
+    var codeChallengeMethod = context.Request.Query["code_challenge_method"].ToString();
+    if (form is not null)
+    {
+        codeChallenge = string.IsNullOrEmpty(codeChallenge)
+            ? form["code_challenge"].ToString()
+            : codeChallenge;
+        codeChallengeMethod = string.IsNullOrEmpty(codeChallengeMethod)
+            ? form["code_challenge_method"].ToString()
+            : codeChallengeMethod;
+    }
+
     if (context.Request.Path.Equals("/connect/authorize") &&
         nativeClients.IsRegistered(clientId) &&
-        !AuthPolicy.IsS256PkceRequest(
-            context.Request.Query["code_challenge"].ToString(),
-            context.Request.Query["code_challenge_method"].ToString()))
+        !AuthPolicy.IsS256PkceRequest(codeChallenge, codeChallengeMethod))
     {
         context.Response.StatusCode = StatusCodes.Status400BadRequest;
         await context.Response.WriteAsJsonAsync(new

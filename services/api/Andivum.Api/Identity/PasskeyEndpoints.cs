@@ -100,28 +100,10 @@ public static class PasskeyEndpoints
                 }
 
                 var user = await userManager.GetUserAsync(context.User);
-                if (user is not null)
+                if (user is null)
                 {
-                    var existingPasskeys = await userManager.GetPasskeysAsync(user);
-                    if (AuthPolicy.CanAuthorizeWithPasskey(existingPasskeys.Count))
-                    {
-                        return Results.BadRequest(new { code = "already_registered" });
-                    }
+                    return Results.Unauthorized();
                 }
-                else
-                {
-                    user = new ApplicationUser
-                    {
-                        UserName = $"passkey-{Guid.NewGuid():N}",
-                    };
-                    var createResult = await userManager.CreateAsync(user);
-                    if (!createResult.Succeeded)
-                    {
-                        return Results.BadRequest(new { code = "registration_failed" });
-                    }
-                }
-
-                await signInManager.SignInAsync(user, isPersistent: false);
 
                 var optionsJson = await signInManager.MakePasskeyCreationOptionsAsync(
                     new()

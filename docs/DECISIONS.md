@@ -11,8 +11,9 @@
 | [0007](adr/0007-autonomous-ai-development.md)    | Автономная spec-first TDD-разработка     | Принято |
 | [0008](adr/0008-native-client-localization.md)   | Нативная локализация клиентов            | Принято |
 | [0009](adr/0009-authentication-slice.md)         | Первый authentication vertical slice    | Принято |
-| [0010](adr/0010-passwordless-account-bootstrap.md) | Passwordless account bootstrap без почты | Принято |
+| [0010](adr/0010-passwordless-account-bootstrap.md) | Passwordless account bootstrap без почты | Заменён 0012 |
 | [0011](adr/0011-protected-native-session.md)     | Проверка и обновление native-сессии     | Принято |
+| [0012](adr/0012-email-password-authentication.md) | Email/password через OIDC browser auth | Принято |
 
 ## Открытые решения
 

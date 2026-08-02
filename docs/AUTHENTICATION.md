@@ -7,7 +7,8 @@ Windows и Android. Источник машинно-читаемого конт�
 
 ## Что уже реализовано
 
-- ASP.NET Core Identity хранит пользователей и passkeys в PostgreSQL.
+- ASP.NET Core Identity хранит пользователей, хэши паролей и passkeys в
+  PostgreSQL.
 - OpenIddict предоставляет OIDC discovery, authorization code и refresh token
   flows.
 - Нативные клиенты являются public clients: `andivum-windows` и
@@ -17,15 +18,21 @@ Windows и Android. Источник машинно-читаемого конт�
 - Passkey request options используют discoverable credentials и не принимают
   username.
 - Mutating passkey endpoints защищены anti-forgery token.
-- Анонимный пользователь может создать первый аккаунт через passkey без
-  обязательной почты или пароля.
-- Pending-аккаунт не может продолжить `/connect/authorize`, пока attestation не
-  сохранит хотя бы один passkey.
+- `/connect/authorize` показывает регистрацию и вход по email/password в
+  системном браузере. Пароль не передаётся в native-клиент.
+- Пароль должен содержать минимум 12 символов, цифру, строчные и прописные
+  буквы, специальный символ и минимум 5 разных символов; после 5 неудачных
+  попыток аккаунт временно блокируется на 15 минут.
+- Passkey остаётся дополнительным способом входа и подключается из
+  authenticated account settings; его наличие не блокирует authorize после
+  email/password входа.
+- Локальный MVP пока не отправляет email confirmation и не предоставляет
+  recovery. Это не считается production-ready auth.
 
 Восстановление аккаунта и logout-all-devices остаются следующими auth-срезами.
-Нативные login/dashboard shells уже реализованы на Windows и Android; сама
-passkey ceremony по-прежнему проходит на server-rendered auth surface через
-системный браузер.
+Нативные login/dashboard shells уже реализованы на Windows и Android; email/password
+и passkey ceremony проходят на server-rendered auth surface через системный
+браузер.
 После получения токенов оба клиента вызывают защищённый `GET /api/v1/session`.
 Dashboard открывается только после ответа сервера, а не только потому, что
 локально нашёлся сохранённый токен.
@@ -85,7 +92,9 @@ pnpm android:build -- -PandivumApiBaseUrl=https://localhost:7240
 callback и защищённая проверка сессии проходят успешно; instrumentation дал
 5/5 тестов. Trust-all обход для приложения не используется. Windows login shell
 проверен в packaged-приложении; Windows Hello ceremony требует ручного
-подтверждения пользователя и не автоматизируется агентом.
+подтверждения пользователя и не автоматизируется агентом. Email/password
+registration/sign-in покрыты API integration tests; ручной browser smoke для
+реального аккаунта остаётся отдельным шагом.
 
 Для остановки инфраструктуры:
 
@@ -98,7 +107,8 @@ docker compose --env-file .env -f infra/compose/docker-compose.yml down
 1. Клиент генерирует `state`, `code_verifier` и `code_challenge` методом S256.
 2. Клиент открывает `/connect/authorize` в системной browser/authentication
    session. Embedded WebView не используется.
-3. Пользователь проходит passkey ceremony на auth-домене.
+3. Пользователь вводит email/password или выбирает уже подключённый passkey на
+   auth-домене.
 4. Сервер возвращает authorization code на точный custom-scheme callback.
 5. Клиент обменивает code на `/connect/token`, передавая тот же
    `code_verifier`.
@@ -106,17 +116,15 @@ docker compose --env-file .env -f infra/compose/docker-compose.yml down
 7. При истечении access token клиент выполняет refresh-token grant и заменяет
    старый refresh token новым.
 
-### Регистрация первого passkey
+### Подключение passkey после регистрации
 
-1. Пользователь выбирает `Create an account with passkey` на auth surface.
-2. Сервер создаёт технический Identity account и устанавливает pending browser
-   session.
+1. Пользователь сначала регистрируется или входит по email/password.
+2. В authenticated `/Account/Settings` выбирает подключение passkey.
 3. Браузер выполняет WebAuthn creation ceremony.
-4. Сервер сохраняет attestation и только после этого разрешает исходный
-   authorize request.
+4. Сервер сохраняет attestation для текущего Identity account.
 
-Технический username не является отображаемым именем пользователя. Recovery,
-email verification и смена имени аккаунта пока не входят в контракт.
+Email используется как логин, но не является отображаемым именем пользователя.
+Recovery, email verification и смена имени аккаунта пока не входят в контракт.
 
 Текущие development callbacks:
 
