@@ -13,8 +13,8 @@
     "check": "pnpm test && pnpm api:test && node tools/scripts/check-foundation.mjs",
     "check:foundation": "node tools/scripts/check-foundation.mjs",
     "api:build": "dotnet build services/api/Andivum.Api/Andivum.Api.csproj",
-    "api:test": "dotnet test services/api/Andivum.Api.Tests/Andivum.Api.Tests.csproj",
+    "api:test": "node tools/scripts/run-api-tests.mjs",
     "dev:infra": "docker compose --env-file .env -f infra/compose/docker-compose.yml up -d --wait",
-    "dev:api": "dotnet run --project services/api/Andivum.Api/Andivum.Api.csproj"
+    "dev:api": "node tools/scripts/run-api.mjs"
   }
 }

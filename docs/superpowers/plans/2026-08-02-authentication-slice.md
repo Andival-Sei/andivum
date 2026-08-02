@@ -70,23 +70,24 @@ EF Core 10, Npgsql, PostgreSQL, Docker Compose, xUnit, WebApplicationFactory.
 - Create: `services/api/Andivum.Api/Data/ApplicationDbContext.cs`
 - Create: `services/api/Andivum.Api/Data/DesignTimeDbContextFactory.cs`
 - Create: `services/api/Andivum.Api/Migrations/*`
+- Create: `dotnet-tools.json`
 - Modify: `services/api/Andivum.Api/Program.cs`, `*.csproj`,
   `appsettings.Development.json`
 - Create: `services/api/Andivum.Api.Tests/DatabaseSchemaTests.cs`
 
 **Steps:**
 
-- [ ] Write a failing schema test that resolves `ApplicationDbContext` and
+- [x] Write a failing schema test that resolves `ApplicationDbContext` and
       verifies Identity and OpenIddict tables can be created against the test
       database.
-- [ ] Run the focused test and confirm the context/service registrations are
+- [x] Run the focused test and confirm the context/service registrations are
       missing.
-- [ ] Add EF Core PostgreSQL, Identity and OpenIddict EF packages; configure one
+- [x] Add EF Core PostgreSQL, Identity and OpenIddict EF packages; configure one
       context for Identity and OpenIddict stores.
-- [ ] Add the initial migration and a design-time factory reading
+- [x] Add the initial migration and a design-time factory reading
       `ConnectionStrings:Postgres`.
-- [ ] Run migration against Compose PostgreSQL and the schema integration test.
-- [ ] Run `dotnet test` and `pnpm check`.
+- [x] Run migration against Compose PostgreSQL and the schema integration test.
+- [x] Run `dotnet test` and `pnpm check`.
 - [ ] Commit `feat: добавить хранилище Identity и OpenIddict`.
 
 ### Task 3: Enforce passkey and native-client policies

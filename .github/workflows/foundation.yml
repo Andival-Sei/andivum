@@ -11,6 +11,24 @@ permissions:
 jobs:
   check:
     runs-on: ubuntu-latest
+    env:
+      ANDIVUM_TEST_POSTGRES_DB: andivum_ci
+      ANDIVUM_TEST_POSTGRES_USER: andivum_ci
+      ANDIVUM_TEST_POSTGRES_PORT: 5432
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: andivum_ci
+          POSTGRES_USER: andivum_ci
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U andivum_ci -d andivum_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6

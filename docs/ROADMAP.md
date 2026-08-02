@@ -13,8 +13,8 @@
 
 ## 1. Authentication vertical slice
 
-- [ ] Создать ASP.NET Core backend и PostgreSQL migrations.
-- [ ] Подключить ASP.NET Core Identity и OpenIddict.
+- [x] Создать ASP.NET Core backend и PostgreSQL migrations.
+- [x] Подключить ASP.NET Core Identity и OpenIddict.
 - [ ] Реализовать registration/sign-in/logout с passkeys.
 - [ ] Создать WinUI 3 shell и OIDC PKCE client.
 - [ ] Создать Android Compose shell и OIDC PKCE client.
