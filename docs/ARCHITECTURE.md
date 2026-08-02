@@ -195,7 +195,7 @@ capability contract, например `CalendarRead`, `ProfileRead` или
 Корневой `pnpm` facade постепенно получает команды:
 
 ```text
-pnpm doctor
+pnpm run doctor
 pnpm check
 pnpm format
 pnpm test

@@ -8,7 +8,9 @@
     "node": ">=24"
   },
   "scripts": {
-    "check": "node tools/scripts/check-foundation.mjs",
+    "doctor": "node tools/scripts/doctor.mjs",
+    "test": "node --test tools/scripts/*.test.mjs",
+    "check": "pnpm test && node tools/scripts/check-foundation.mjs",
     "check:foundation": "node tools/scripts/check-foundation.mjs"
   }
 }

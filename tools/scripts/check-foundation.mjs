@@ -7,6 +7,7 @@ const requiredFiles = [
   "AGENTS.md",
   "PROJECT_CONTEXT.md",
   "docs/DEVELOPMENT_PROCESS.md",
+  "docs/TOOLCHAIN.md",
   "config/product.json",
   "config/product.schema.json",
   "docs/PRODUCT.md",

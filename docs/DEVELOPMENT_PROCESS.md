@@ -62,7 +62,7 @@ Intent → Context → Spec → Plan → RED → GREEN → REFACTOR
 Корневой `pnpm` остаётся единым интерфейсом:
 
 ```powershell
-pnpm doctor
+pnpm run doctor
 pnpm check
 pnpm test
 pnpm build

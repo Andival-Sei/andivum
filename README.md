@@ -25,6 +25,7 @@ Andivum проектируется как два нативных приложе
 - [docs/ROADMAP.md](docs/ROADMAP.md) — последовательность работ;
 - [docs/DEVELOPMENT_PROCESS.md](docs/DEVELOPMENT_PROCESS.md) — автономный
   AI-driven/TDD процесс;
+- [docs/TOOLCHAIN.md](docs/TOOLCHAIN.md) — SDK, CLI, MCP и проверка среды;
 - [AGENTS.md](AGENTS.md) — правила работы AI-агентов и разработчиков.
 
 ## Быстрый старт для разработки
@@ -33,6 +34,7 @@ Andivum проектируется как два нативных приложе
 
 ```powershell
 pnpm install
+pnpm run doctor
 pnpm check
 ```
 
