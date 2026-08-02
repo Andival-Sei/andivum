@@ -7,9 +7,9 @@
 - [x] Определить правила для AI-агентов.
 - [x] Зафиксировать автономный spec-first TDD-процесс.
 - [x] Добавить воспроизводимую проверку developer toolchain.
-- [ ] Создать monorepo skeleton и единый `pnpm` command facade.
+- [x] Создать backend monorepo skeleton и единый `pnpm` command facade.
 - [ ] Добавить CI для Windows, Android, backend и контрактов.
-- [ ] Добавить локальную PostgreSQL-инфраструктуру без секретов.
+- [x] Добавить локальную PostgreSQL-инфраструктуру без production-секретов.
 
 ## 1. Authentication vertical slice
 
