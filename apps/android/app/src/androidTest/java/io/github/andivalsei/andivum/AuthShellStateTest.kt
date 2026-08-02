@@ -2,6 +2,7 @@ package io.github.andivalsei.andivum
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -21,5 +22,19 @@ class AuthShellStateTest {
             AuthShellScreen.SIGN_IN,
             AuthShellState(isSignedIn = false).screen,
         )
+    }
+
+    @Test
+    fun a_failed_auth_check_returns_to_sign_in_and_allows_retry() {
+        val recovered = AuthShellState(
+            isSignedIn = false,
+            isBusy = true,
+            sessionStatus = "old session",
+        ).recoverAfterAuthFailure("Please sign in again.")
+
+        assertFalse(recovered.isBusy)
+        assertEquals(AuthShellScreen.SIGN_IN, recovered.screen)
+        assertEquals("Please sign in again.", recovered.message)
+        assertEquals(null, recovered.sessionStatus)
     }
 }

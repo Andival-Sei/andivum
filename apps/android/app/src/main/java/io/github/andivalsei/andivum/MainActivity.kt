@@ -61,17 +61,16 @@ class MainActivity : ComponentActivity() {
     ) { result ->
         val data = result.data
         if (data == null) {
-            uiState = uiState.copy(
-                isBusy = false,
-                message = getString(R.string.auth_cancelled),
-            )
+            authManager.clearSession()
+            uiState = uiState.recoverAfterAuthFailure(getString(R.string.auth_cancelled))
             return@registerForActivityResult
         }
 
         authManager.handleCallback(data) { status ->
             if (!authManager.isSignedIn()) {
+                authManager.clearSession()
                 runOnUiThread {
-                    uiState = uiState.copy(isBusy = false, message = status)
+                    uiState = uiState.recoverAfterAuthFailure(status)
                 }
                 return@handleCallback
             }
@@ -88,10 +87,8 @@ class MainActivity : ComponentActivity() {
                             )
                         },
                         onFailure = {
-                            uiState.copy(
-                                isSignedIn = false,
-                                isBusy = false,
-                                message = getString(R.string.auth_session_unavailable),
+                            uiState.recoverAfterAuthFailure(
+                                getString(R.string.auth_session_unavailable),
                             )
                         },
                     )
@@ -110,6 +107,7 @@ class MainActivity : ComponentActivity() {
                 AndivumApp(
                     state = uiState,
                     onSignIn = ::beginSignIn,
+                    onCancelSignIn = ::cancelSignIn,
                     onSignOut = ::signOut,
                     onOpenAccountSettings = ::openAccountSettings,
                 )
@@ -127,9 +125,8 @@ class MainActivity : ComponentActivity() {
                             )
                         },
                         onFailure = {
-                            uiState.copy(
-                                isBusy = false,
-                                message = getString(R.string.auth_session_unavailable),
+                            uiState.recoverAfterAuthFailure(
+                                getString(R.string.auth_session_unavailable),
                             )
                         },
                     )
@@ -162,6 +159,12 @@ class MainActivity : ComponentActivity() {
         )
     }
 
+    private fun cancelSignIn() {
+        if (!uiState.isBusy) return
+        authManager.clearSession()
+        uiState = uiState.recoverAfterAuthFailure(getString(R.string.auth_cancelled))
+    }
+
     private fun signOut() {
         authManager.signOut()
         uiState = AuthShellState(isSignedIn = false)
@@ -188,11 +191,16 @@ class MainActivity : ComponentActivity() {
 private fun AndivumApp(
     state: AuthShellState,
     onSignIn: () -> Unit,
+    onCancelSignIn: () -> Unit,
     onSignOut: () -> Unit,
     onOpenAccountSettings: () -> Unit,
 ) {
     when (state.screen) {
-        AuthShellScreen.SIGN_IN -> SignInScreen(state = state, onSignIn = onSignIn)
+        AuthShellScreen.SIGN_IN -> SignInScreen(
+            state = state,
+            onSignIn = onSignIn,
+            onCancelSignIn = onCancelSignIn,
+        )
         AuthShellScreen.DASHBOARD -> DashboardScreen(
             sessionStatus = state.sessionStatus,
             onSignOut = onSignOut,
@@ -205,6 +213,7 @@ private fun AndivumApp(
 private fun SignInScreen(
     state: AuthShellState,
     onSignIn: () -> Unit,
+    onCancelSignIn: () -> Unit,
 ) {
     Surface(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -293,6 +302,14 @@ private fun SignInScreen(
                             ),
                             fontWeight = FontWeight.SemiBold,
                         )
+                    }
+                    if (state.isBusy) {
+                        TextButton(
+                            onClick = onCancelSignIn,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Text(text = stringResource(R.string.auth_cancel))
+                        }
                     }
                 }
             }

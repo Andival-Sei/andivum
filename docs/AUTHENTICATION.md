@@ -169,11 +169,12 @@ pnpm android:build:physical
 4. Пользователь регистрируется или входит по email/password на Auth0.
 5. Auth0 возвращает authorization code на точный callback.
 6. Клиент обменивает code на token endpoint, проверяет state и сохраняет
-   credential state только в secure storage ОС.
+   credential state только после успешного результата в secure storage ОС.
 7. Клиент отправляет Auth0 ID token вместе с Supabase publishable key, получает
    или создаёт `app_profiles` и только после успешного ответа открывает dashboard.
 8. При истечении access token выполняется refresh с rotation. Если refresh
-   невозможен, локальная сессия очищается и пользователь возвращается к входу.
+   невозможен, локальная сессия очищается и пользователь возвращается к входу;
+   незавершённое ожидание браузера можно отменить с самого экрана входа.
 
 ## Passkeys
 

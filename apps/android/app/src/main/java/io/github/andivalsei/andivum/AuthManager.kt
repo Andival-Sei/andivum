@@ -61,17 +61,27 @@ class AuthManager(context: Context) {
         val exception = AuthorizationException.fromIntent(intent)
         state = AuthState()
         state.update(response, exception)
-        stateStore.write(state)
         if (response is AuthorizationResponse) {
             authorizationService.performTokenRequest(response.createTokenExchangeRequest()) { tokenResponse, tokenException ->
-                state.update(tokenResponse, tokenException)
-                stateStore.write(state)
+                if (tokenException != null || tokenResponse == null) {
+                    state = AuthState()
+                    stateStore.clear()
+                } else {
+                    state.update(tokenResponse, null)
+                    stateStore.write(state)
+                }
                 onComplete(
-                    if (tokenException == null) appContext.getString(R.string.auth_signed_in) else
-                        tokenException.errorDescription ?: appContext.getString(R.string.auth_token_exchange_failed),
+                    if (tokenException == null && tokenResponse != null) {
+                        appContext.getString(R.string.auth_signed_in)
+                    } else {
+                        tokenException?.errorDescription
+                            ?: appContext.getString(R.string.auth_token_exchange_failed)
+                    },
                 )
             }
         } else {
+            state = AuthState()
+            stateStore.clear()
             onComplete(exception?.errorDescription ?: appContext.getString(R.string.auth_failed))
         }
     }
@@ -80,8 +90,8 @@ class AuthManager(context: Context) {
 
     fun validateSession(onComplete: (Result<SessionResponse>) -> Unit) {
         state.performActionWithFreshTokens(authorizationService) { accessToken, _, exception ->
-            stateStore.write(state)
             if (exception != null || accessToken.isNullOrBlank()) {
+                clearSession()
                 onComplete(
                     Result.failure(
                         exception ?: IllegalStateException("No access token is available."),
@@ -90,6 +100,7 @@ class AuthManager(context: Context) {
                 return@performActionWithFreshTokens
             }
 
+            stateStore.write(state)
             validateWithAccessToken(accessToken, onComplete)
         }
     }
@@ -118,14 +129,14 @@ class AuthManager(context: Context) {
         val refreshRequest = try {
             state.createTokenRefreshRequest()
         } catch (exception: Exception) {
+            clearSession()
             onComplete(Result.failure(exception))
             return
         }
 
         authorizationService.performTokenRequest(refreshRequest) { tokenResponse, tokenException ->
-            state.update(tokenResponse, tokenException)
-            stateStore.write(state)
             if (tokenException != null || tokenResponse == null || state.accessToken.isNullOrBlank()) {
+                clearSession()
                 onComplete(
                     Result.failure(
                         tokenException ?: IllegalStateException("Refresh did not return an access token."),
@@ -134,13 +145,19 @@ class AuthManager(context: Context) {
                 return@performTokenRequest
             }
 
+            state.update(tokenResponse, null)
+            stateStore.write(state)
             validateWithAccessToken(state.accessToken!!, onComplete)
         }
     }
 
-    fun signOut() {
+    fun clearSession() {
         state = AuthState()
         stateStore.clear()
+    }
+
+    fun signOut() {
+        clearSession()
     }
 
     fun close() {

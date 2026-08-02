@@ -14,3 +14,10 @@ data class AuthShellState(
     val screen: AuthShellScreen
         get() = if (isSignedIn) AuthShellScreen.DASHBOARD else AuthShellScreen.SIGN_IN
 }
+
+fun AuthShellState.recoverAfterAuthFailure(message: String): AuthShellState = copy(
+    isSignedIn = false,
+    isBusy = false,
+    message = message,
+    sessionStatus = null,
+)

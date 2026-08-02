@@ -11,6 +11,7 @@
     <string name="auth_card_body">Use the system browser to create an account or sign in with email and password. You can connect a passkey later in settings.</string>
     <string name="auth_security_note">Your password is entered only on the secure sign-in page and is never sent to the app.</string>
     <string name="auth_waiting">Waiting for sign-in in the system browser…</string>
+    <string name="auth_cancel">Return to sign-in</string>
     <string name="auth_cancelled">Sign-in was cancelled.</string>
     <string name="auth_discovery_failed">The sign-in service could not be reached.</string>
     <string name="auth_token_exchange_failed">Sign-in could not be completed.</string>

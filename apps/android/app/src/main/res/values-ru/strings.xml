@@ -11,6 +11,7 @@
     <string name="auth_card_body">В системном браузере можно создать аккаунт или войти по email и паролю. Passkey можно подключить позже в настройках.</string>
     <string name="auth_security_note">Пароль вводится только на защищённой странице входа и не передаётся приложению.</string>
     <string name="auth_waiting">Ожидаем вход в системном браузере…</string>
+    <string name="auth_cancel">Вернуться ко входу</string>
     <string name="auth_cancelled">Вход отменён.</string>
     <string name="auth_discovery_failed">Не удалось подключиться к сервису входа.</string>
     <string name="auth_token_exchange_failed">Не удалось завершить вход.</string>
