@@ -14,11 +14,15 @@ const fileEnvironment = existsSync(envFile)
   : {};
 const environment = { ...fileEnvironment, ...process.env };
 environment.ASPNETCORE_ENVIRONMENT ??= "Development";
+const hasExternalConnectionString = Boolean(
+  process.env.ConnectionStrings__Postgres,
+);
 
-if (!environment.ConnectionStrings__Postgres) {
+if (!hasExternalConnectionString) {
   const connectionString = buildPostgresConnectionString(environment);
   if (connectionString) {
     environment.ConnectionStrings__Postgres = connectionString;
+    environment.Database__AutoMigrate = "true";
   }
 }
 

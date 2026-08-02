@@ -1,4 +1,5 @@
 using Andivum.Api.Data;
+using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Identity;
 
 namespace Andivum.Api.Identity;
@@ -11,13 +12,17 @@ public static class PasskeyEndpoints
         endpoints.MapPost(
             "/Account/PasskeyRequestOptions",
             async (
-                string? username,
+                HttpContext context,
+                IAntiforgery antiforgery,
                 UserManager<ApplicationUser> userManager,
                 SignInManager<ApplicationUser> signInManager) =>
             {
-                var user = string.IsNullOrWhiteSpace(username)
-                    ? null
-                    : await userManager.FindByNameAsync(username);
+                if (!await IsAntiForgeryValidAsync(context, antiforgery))
+                {
+                    return Results.BadRequest(new { code = "invalid_csrf" });
+                }
+
+                var user = (ApplicationUser?)null;
                 var optionsJson =
                     await signInManager.MakePasskeyRequestOptionsAsync(user);
 
@@ -30,10 +35,16 @@ public static class PasskeyEndpoints
             "/Account/PasskeyCreationOptions",
             async (
                 HttpContext context,
+                IAntiforgery antiforgery,
                 UserManager<ApplicationUser> userManager,
                 SignInManager<ApplicationUser> signInManager,
                 PasskeyCreationRequest request) =>
             {
+                if (!await IsAntiForgeryValidAsync(context, antiforgery))
+                {
+                    return Results.BadRequest(new { code = "invalid_csrf" });
+                }
+
                 var user = await userManager.GetUserAsync(context.User);
                 if (user is null)
                 {
@@ -70,10 +81,16 @@ public static class PasskeyEndpoints
             "/Account/PasskeyAttestation",
             async (
                 HttpContext context,
+                IAntiforgery antiforgery,
                 UserManager<ApplicationUser> userManager,
                 SignInManager<ApplicationUser> signInManager,
                 PasskeyAttestationRequest request) =>
             {
+                if (!await IsAntiForgeryValidAsync(context, antiforgery))
+                {
+                    return Results.BadRequest(new { code = "invalid_csrf" });
+                }
+
                 var user = await userManager.GetUserAsync(context.User);
                 if (user is null)
                 {
@@ -113,9 +130,16 @@ public static class PasskeyEndpoints
         endpoints.MapPost(
             "/Account/PasskeySignIn",
             async (
+                HttpContext context,
+                IAntiforgery antiforgery,
                 SignInManager<ApplicationUser> signInManager,
                 PasskeySignInRequest request) =>
             {
+                if (!await IsAntiForgeryValidAsync(context, antiforgery))
+                {
+                    return Results.BadRequest(new { code = "invalid_csrf" });
+                }
+
                 var result = await signInManager.PasskeySignInAsync(
                     request.CredentialJson);
 
@@ -125,6 +149,21 @@ public static class PasskeyEndpoints
             });
 
         return endpoints;
+    }
+
+    private static async Task<bool> IsAntiForgeryValidAsync(
+        HttpContext context,
+        IAntiforgery antiforgery)
+    {
+        try
+        {
+            await antiforgery.ValidateRequestAsync(context);
+            return true;
+        }
+        catch (AntiforgeryValidationException)
+        {
+            return false;
+        }
     }
 }
 

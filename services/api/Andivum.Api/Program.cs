@@ -1,5 +1,6 @@
 using Andivum.Api.Data;
 using Andivum.Api.Identity;
+using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -39,10 +40,26 @@ builder.Services.AddOpenIddict()
             .AllowRefreshTokenFlow()
             .RequireProofKeyForCodeExchange()
             .SetAccessTokenLifetime(TimeSpan.FromMinutes(5))
-            .SetRefreshTokenLifetime(TimeSpan.FromDays(30))
-            .AddEphemeralEncryptionKey()
-            .AddEphemeralSigningKey()
-            .UseAspNetCore()
+            .SetRefreshTokenLifetime(TimeSpan.FromDays(30));
+
+        if (builder.Environment.IsDevelopment())
+        {
+            options.AddEphemeralEncryptionKey()
+                .AddEphemeralSigningKey();
+        }
+        else
+        {
+            options.AddEncryptionCertificate(
+                    OpenIddictCredentialLoader.Load(
+                        builder.Configuration,
+                        "EncryptionCertificatePath"))
+                .AddSigningCertificate(
+                    OpenIddictCredentialLoader.Load(
+                        builder.Configuration,
+                        "SigningCertificatePath"));
+        }
+
+        options.UseAspNetCore()
             .EnableAuthorizationEndpointPassthrough()
             .EnableTokenEndpointPassthrough();
     })
@@ -53,16 +70,26 @@ builder.Services.AddOpenIddict()
     });
 
 builder.Services.AddControllers();
+builder.Services.AddAntiforgery();
 
 var app = builder.Build();
 
 _ = app.Services.GetRequiredService<IOptions<IdentityPasskeyOptions>>().Value;
 
-if (app.Environment.IsDevelopment() &&
-    !string.Equals(
+var autoMigrate = app.Environment.IsDevelopment() &&
+    string.Equals(
         app.Configuration["Database:AutoMigrate"],
-        "false",
-        StringComparison.OrdinalIgnoreCase))
+        "true",
+        StringComparison.OrdinalIgnoreCase);
+
+if (autoMigrate &&
+    !DevelopmentDatabasePolicy.IsLocalDevelopmentConnection(connectionString))
+{
+    throw new InvalidOperationException(
+        "Development auto-migration requires a local andivum_* PostgreSQL database.");
+}
+
+if (autoMigrate)
 {
     await using var scope = app.Services.CreateAsyncScope();
     var database = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
@@ -71,6 +98,53 @@ if (app.Environment.IsDevelopment() &&
         scope.ServiceProvider.GetRequiredService<IOpenIddictApplicationManager>(),
         scope.ServiceProvider.GetRequiredService<NativeClientRegistry>());
 }
+
+var nativeClients = app.Services.GetRequiredService<NativeClientRegistry>();
+app.Use(async (context, next) =>
+{
+    var clientId = context.Request.Query["client_id"].ToString();
+    IFormCollection? form = null;
+
+    if (context.Request.HasFormContentType)
+    {
+        form = await context.Request.ReadFormAsync();
+        clientId = string.IsNullOrEmpty(clientId)
+            ? form["client_id"].ToString()
+            : clientId;
+    }
+
+    if (context.Request.Path.Equals("/connect/authorize") &&
+        nativeClients.IsRegistered(clientId) &&
+        !AuthPolicy.IsS256PkceRequest(
+            context.Request.Query["code_challenge"].ToString(),
+            context.Request.Query["code_challenge_method"].ToString()))
+    {
+        context.Response.StatusCode = StatusCodes.Status400BadRequest;
+        await context.Response.WriteAsJsonAsync(new
+        {
+            error = "invalid_request",
+            error_description = "S256 PKCE is required for native clients.",
+        });
+        return;
+    }
+
+    if (context.Request.Path.Equals("/connect/token") &&
+        nativeClients.IsRegistered(clientId) &&
+        context.Request.HasFormContentType &&
+        form is not null &&
+        !string.IsNullOrEmpty(form["client_secret"].ToString()))
+    {
+        context.Response.StatusCode = StatusCodes.Status400BadRequest;
+        await context.Response.WriteAsJsonAsync(new
+        {
+            error = "invalid_client",
+            error_description = "Native clients must not send a client secret.",
+        });
+        return;
+    }
+
+    await next();
+});
 
 app.UseAuthentication();
 app.UseAuthorization();

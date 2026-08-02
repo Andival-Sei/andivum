@@ -140,7 +140,9 @@ EF Core 10, Npgsql, PostgreSQL, Docker Compose, xUnit, WebApplicationFactory.
       OpenIddict validation.
 - [x] Run integration tests against isolated PostgreSQL and verify no token
       material is emitted to test output.
-- [ ] Commit `feat: реализовать OIDC auth flow с passkeys`.
+- [x] Commit `feat: реализовать OIDC auth flow с passkeys` вместе с
+      runtime-проверками PKCE/public-client и CSRF, защитой auto-migration и
+      production-конфигурацией ключей OpenIddict.
 
 ### Task 5: Add API contract, local HTTPS docs and security verification
 

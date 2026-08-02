@@ -1,5 +1,7 @@
 using System.Security.Claims;
+using System.Text.Json;
 using Microsoft.AspNetCore;
+using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using OpenIddict.Abstractions;
@@ -11,7 +13,7 @@ namespace Andivum.Api.Identity;
 public sealed class AuthorizationController : ControllerBase
 {
     [HttpGet("~/connect/authorize")]
-    public IActionResult Authorize()
+    public IActionResult Authorize(IAntiforgery antiforgery)
     {
         var request = HttpContext.GetOpenIddictServerRequest();
         if (request is null)
@@ -21,7 +23,14 @@ public sealed class AuthorizationController : ControllerBase
 
         if (User.Identity?.IsAuthenticated != true)
         {
-            return Content(LoginPage, "text/html; charset=utf-8");
+            var tokens = antiforgery.GetAndStoreTokens(HttpContext);
+            var token = JsonSerializer.Serialize(tokens.RequestToken);
+            return Content(
+                LoginPage.Replace(
+                    "__ANTIFORGERY_TOKEN__",
+                    token,
+                    StringComparison.Ordinal),
+                "text/html; charset=utf-8");
         }
 
         var subject = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -78,6 +87,7 @@ public sealed class AuthorizationController : ControllerBase
           </main>
           <script>
             const status = document.getElementById('status');
+            const antiForgeryToken = __ANTIFORGERY_TOKEN__;
             const toBase64Url = (value) => {
               if (!value) return null;
               const bytes = value instanceof ArrayBuffer ? new Uint8Array(value) : value;
@@ -101,12 +111,18 @@ public sealed class AuthorizationController : ControllerBase
             document.getElementById('sign-in').addEventListener('click', async () => {
               try {
                 status.textContent = 'Waiting for the authenticator…';
-                const optionsResponse = await fetch('/Account/PasskeyRequestOptions', { method: 'POST' });
+                const optionsResponse = await fetch('/Account/PasskeyRequestOptions', {
+                  method: 'POST',
+                  headers: { 'RequestVerificationToken': antiForgeryToken },
+                });
                 const options = PublicKeyCredential.parseRequestOptionsFromJSON(await optionsResponse.json());
                 const credential = await navigator.credentials.get({ publicKey: options });
                 const signInResponse = await fetch('/Account/PasskeySignIn', {
                   method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': antiForgeryToken,
+                  },
                   body: JSON.stringify({ credentialJson: JSON.stringify(serializeCredential(credential)) }),
                 });
                 if (!signInResponse.ok) throw new Error('The passkey was not accepted.');

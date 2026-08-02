@@ -66,6 +66,44 @@ public sealed class OpenIddictFlowTests
     }
 
     [Fact]
+    public async Task Authorization_rejects_plain_pkce_for_native_clients()
+    {
+        await using var factory = CreateFactory();
+        using var client = CreateHttpsClient(factory);
+
+        using var response = await client.GetAsync(
+            "/connect/authorize?client_id=andivum-windows" +
+            "&response_type=code" +
+            "&redirect_uri=andivum%3A%2F%2Fwindows%2Fauth%2Fcallback" +
+            "&scope=openid" +
+            "&code_challenge=challenge" +
+            "&code_challenge_method=plain");
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Public_native_client_rejects_a_client_secret()
+    {
+        await using var factory = CreateFactory();
+        using var client = CreateHttpsClient(factory);
+
+        using var response = await client.PostAsync(
+            "/connect/token",
+            new FormUrlEncodedContent(
+            [
+                new KeyValuePair<string, string>("client_id", "andivum-windows"),
+                new KeyValuePair<string, string>("client_secret", "unexpected"),
+                new KeyValuePair<string, string>("grant_type", "refresh_token"),
+            ]));
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Contains(
+            "invalid_client",
+            await response.Content.ReadAsStringAsync());
+    }
+
+    [Fact]
     public async Task Registered_native_client_reaches_the_passkey_surface()
     {
         await using var factory = CreateFactory();
@@ -85,7 +123,7 @@ public sealed class OpenIddictFlowTests
     }
 
     [Fact]
-    public async Task Anonymous_passkey_creation_options_are_rejected()
+    public async Task Passkey_mutations_without_csrf_are_rejected()
     {
         await using var factory = CreateFactory();
         using var client = CreateHttpsClient(factory);
@@ -98,7 +136,7 @@ public sealed class OpenIddictFlowTests
     }
 
     [Fact]
-    public async Task Passkey_request_options_do_not_require_a_username()
+    public async Task Passkey_request_options_without_csrf_are_rejected()
     {
         await using var factory = CreateFactory();
         using var client = CreateHttpsClient(factory);
@@ -107,10 +145,7 @@ public sealed class OpenIddictFlowTests
             "/Account/PasskeyRequestOptions",
             content: null);
 
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Contains(
-            "challenge",
-            await response.Content.ReadAsStringAsync());
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     private static WebApplicationFactory<Program> CreateFactory()
@@ -124,6 +159,7 @@ public sealed class OpenIddictFlowTests
                         "ConnectionStrings__Postgres") ??
                     throw new InvalidOperationException(
                         "ConnectionStrings__Postgres must be set by the dedicated test runner."));
+                builder.UseSetting("Database:AutoMigrate", "true");
             });
     }
 

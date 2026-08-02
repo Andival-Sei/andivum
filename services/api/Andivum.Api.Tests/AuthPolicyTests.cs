@@ -70,7 +70,7 @@ public sealed class AuthPolicyTests
 
         var exception = Assert.ThrowsAny<Exception>(() => factory.CreateClient());
 
-        Assert.Contains("ServerDomain", exception.ToString());
+        Assert.Contains("EncryptionCertificatePath", exception.ToString());
     }
 
     [Fact]
