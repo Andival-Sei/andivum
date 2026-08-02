@@ -116,6 +116,12 @@ browser flow окажется недостаточно нативным.
 - ограничить число и длину имён passkeys;
 - спроектировать revocation, logout-all-devices и refresh-token rotation.
 
+Текущий локальный контракт и команды запуска описаны в
+[`docs/AUTHENTICATION.md`](AUTHENTICATION.md), а стабильная часть API — в
+[`contracts/openapi/andivum-auth.yaml`](../contracts/openapi/andivum-auth.yaml).
+OIDC discovery остаётся источником актуальных endpoint metadata. Production не
+может стартовать с development ephemeral keys или без явных сертификатов.
+
 ## 5. Модули
 
 Начальные backend-модули:

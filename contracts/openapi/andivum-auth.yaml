@@ -1,0 +1,183 @@
+openapi: 3.1.0
+info:
+  title: Andivum Authentication API
+  version: 0.1.0
+  description: >-
+    Stable client-facing contract for the first authentication vertical slice.
+    The OpenID Connect discovery document at /.well-known/openid-configuration
+    remains the authoritative source for endpoint metadata.
+servers:
+  - url: https://localhost:7240
+    description: Local development API
+tags:
+  - name: Session
+  - name: OpenID Connect
+  - name: Passkeys
+paths:
+  /.well-known/openid-configuration:
+    get:
+      operationId: getOpenIdConfiguration
+      tags: [OpenID Connect]
+      summary: Get OpenID Connect discovery metadata
+      responses:
+        '200':
+          description: OpenID Connect discovery document
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /connect/authorize:
+    get:
+      operationId: authorizeNativeClient
+      tags: [OpenID Connect]
+      summary: Start the browser passkey authorization ceremony
+      description: >-
+        Native clients open this URL in the system browser/authentication
+        session. They must use response_type=code, a registered exact
+        redirect_uri, a random code_challenge and code_challenge_method=S256.
+      parameters:
+        - $ref: '#/components/parameters/ClientId'
+        - name: response_type
+          in: query
+          required: true
+          schema: { type: string, const: code }
+        - name: redirect_uri
+          in: query
+          required: true
+          schema: { type: string, format: uri }
+        - name: scope
+          in: query
+          required: true
+          schema: { type: string, example: 'openid profile' }
+        - name: code_challenge
+          in: query
+          required: true
+          schema: { type: string }
+        - name: code_challenge_method
+          in: query
+          required: true
+          schema: { type: string, const: S256 }
+        - name: state
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: HTML passkey sign-in surface
+          content:
+            text/html: { schema: { type: string } }
+        '302':
+          description: Redirect to the registered client callback after authorization
+        '400':
+          $ref: '#/components/responses/InvalidRequest'
+  /connect/token:
+    post:
+      operationId: exchangeAuthorizationCode
+      tags: [OpenID Connect]
+      summary: Exchange an authorization code or refresh token
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/AuthorizationCodeGrant'
+                - $ref: '#/components/schemas/RefreshTokenGrant'
+      responses:
+        '200':
+          description: Token response
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TokenResponse' }
+        '400':
+          $ref: '#/components/responses/InvalidRequest'
+  /api/v1/session:
+    get:
+      operationId: getCurrentSession
+      tags: [Session]
+      summary: Get the authenticated session
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Current user session
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SessionResponse' }
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /Account/PasskeyRequestOptions:
+    post:
+      operationId: getPasskeyRequestOptions
+      tags: [Passkeys]
+      summary: Create discoverable passkey assertion options
+      description: >-
+        Browser-only ceremony endpoint. It requires the anti-forgery token
+        issued by the authorization HTML page and does not accept a username.
+      security: []
+      responses:
+        '200':
+          description: WebAuthn request options
+          content:
+            application/json: { schema: { type: object, additionalProperties: true } }
+        '400':
+          $ref: '#/components/responses/InvalidRequest'
+components:
+  parameters:
+    ClientId:
+      name: client_id
+      in: query
+      required: true
+      schema:
+        type: string
+        enum: [andivum-windows, andivum-android]
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    AuthorizationCodeGrant:
+      type: object
+      required: [client_id, grant_type, code, redirect_uri, code_verifier]
+      properties:
+        client_id: { type: string, enum: [andivum-windows, andivum-android] }
+        grant_type: { type: string, const: authorization_code }
+        code: { type: string }
+        redirect_uri: { type: string, format: uri }
+        code_verifier: { type: string }
+    RefreshTokenGrant:
+      type: object
+      required: [client_id, grant_type, refresh_token]
+      properties:
+        client_id: { type: string, enum: [andivum-windows, andivum-android] }
+        grant_type: { type: string, const: refresh_token }
+        refresh_token: { type: string }
+    TokenResponse:
+      type: object
+      required: [access_token, token_type, expires_in]
+      properties:
+        access_token: { type: string }
+        token_type: { type: string, example: Bearer }
+        expires_in: { type: integer, example: 300 }
+        refresh_token: { type: string }
+        scope: { type: string, example: 'openid profile' }
+    SessionResponse:
+      type: object
+      required: [authenticated, userId]
+      properties:
+        authenticated: { type: boolean, const: true }
+        userId: { type: string, format: uuid }
+        userName: { type: string, nullable: true }
+  responses:
+    InvalidRequest:
+      description: OAuth or anti-forgery request validation failed
+      content:
+        application/json: { schema: { type: object, additionalProperties: true } }
+    Unauthorized:
+      description: Missing or invalid bearer token
+x-andivum-native-clients:
+  - clientId: andivum-windows
+    redirectUri: andivum://windows/auth/callback
+  - clientId: andivum-android
+    redirectUri: andivum://android/auth/callback

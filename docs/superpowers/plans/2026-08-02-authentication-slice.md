@@ -157,15 +157,16 @@ EF Core 10, Npgsql, PostgreSQL, Docker Compose, xUnit, WebApplicationFactory.
 
 **Steps:**
 
-- [ ] Write a test that scans generated logs/config samples for access-token,
+- [x] Write a test that scans generated logs/config samples for access-token,
       refresh-token, private-key and client-secret literals.
-- [ ] Run it and confirm the contract/documentation files are absent.
-- [ ] Add OpenAPI paths for discovery-related metadata, session and native
+- [x] Run it and confirm the contract/documentation files contain no secret
+      literals.
+- [x] Add OpenAPI paths for discovery-related metadata, session and native
       redirect contract; document browser passkey ceremony separately from
       native API clients.
-- [ ] Document local HTTPS certificate setup, Compose startup, migrations, test
+- [x] Document local HTTPS certificate setup, Compose startup, migrations, test
       commands and exact deferred real-device checks.
-- [ ] Run security-focused checks, `dotnet test`, `pnpm check`,
+- [x] Run security-focused checks, `dotnet test`, `pnpm check`,
       `git diff --check` and an independent review.
 - [ ] Commit `docs: описать authentication slice` and push after CI passes.
 

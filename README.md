@@ -27,6 +27,10 @@ skeleton и локальная PostgreSQL-инфраструктура уже г
 - [docs/DEVELOPMENT_PROCESS.md](docs/DEVELOPMENT_PROCESS.md) — автономный
   AI-driven/TDD процесс;
 - [docs/TOOLCHAIN.md](docs/TOOLCHAIN.md) — SDK, CLI, MCP и проверка среды;
+- [docs/AUTHENTICATION.md](docs/AUTHENTICATION.md) — локальный OIDC/passkey
+  контракт и запуск auth-среза;
+- [contracts/openapi/andivum-auth.yaml](contracts/openapi/andivum-auth.yaml) —
+  машинно-читаемый контракт для native clients;
 - [AGENTS.md](AGENTS.md) — правила работы AI-агентов и разработчиков.
 
 ## Быстрый старт для разработки
