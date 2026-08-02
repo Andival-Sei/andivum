@@ -23,6 +23,8 @@ Andivum проектируется как два нативных приложе
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — целевая архитектура и стек;
 - [docs/DECISIONS.md](docs/DECISIONS.md) — журнал решений;
 - [docs/ROADMAP.md](docs/ROADMAP.md) — последовательность работ;
+- [docs/DEVELOPMENT_PROCESS.md](docs/DEVELOPMENT_PROCESS.md) — автономный
+  AI-driven/TDD процесс;
 - [AGENTS.md](AGENTS.md) — правила работы AI-агентов и разработчиков.
 
 ## Быстрый старт для разработки

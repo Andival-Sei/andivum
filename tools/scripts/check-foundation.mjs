@@ -6,12 +6,16 @@ const requiredFiles = [
   "README.md",
   "AGENTS.md",
   "PROJECT_CONTEXT.md",
+  "docs/DEVELOPMENT_PROCESS.md",
   "config/product.json",
   "config/product.schema.json",
   "docs/PRODUCT.md",
   "docs/ARCHITECTURE.md",
   "docs/DECISIONS.md",
   "docs/ROADMAP.md",
+  "docs/templates/FEATURE_SPEC.md",
+  "docs/templates/IMPLEMENTATION_PLAN.md",
+  "docs/templates/ADR.md",
 ];
 
 const errors = [];

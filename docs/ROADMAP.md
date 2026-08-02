@@ -5,6 +5,7 @@
 - [x] Зафиксировать продукт, стек и архитектурные решения.
 - [x] Ввести machine-readable product configuration.
 - [x] Определить правила для AI-агентов.
+- [x] Зафиксировать автономный spec-first TDD-процесс.
 - [ ] Создать monorepo skeleton и единый `pnpm` command facade.
 - [ ] Добавить CI для Windows, Android, backend и контрактов.
 - [ ] Добавить локальную PostgreSQL-инфраструктуру без секретов.

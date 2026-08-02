@@ -5,10 +5,11 @@
 Перед проектированием или изменением кода прочитай в указанном порядке:
 
 1. `PROJECT_CONTEXT.md`;
-2. `config/product.json`;
-3. `docs/ARCHITECTURE.md`;
-4. `docs/DECISIONS.md` и относящиеся к задаче ADR;
-5. `docs/ROADMAP.md`.
+2. `docs/DEVELOPMENT_PROCESS.md`;
+3. `config/product.json`;
+4. `docs/ARCHITECTURE.md`;
+5. `docs/DECISIONS.md` и относящиеся к задаче ADR;
+6. `docs/ROADMAP.md`.
 
 Если задача затрагивает поведение продукта, дополнительно прочитай
 `docs/PRODUCT.md`.
@@ -57,6 +58,13 @@
 
 ## Качество изменений
 
+- Для feature, bugfix, refactoring и изменения поведения используй строгий
+  Red-Green-Refactor: production-код появляется только после теста, который был
+  запущен и упал по ожидаемой причине.
+- Разрешённые владельцем исключения: generated code, декларативная
+  конфигурация/документация и удаляемый технический spike.
+- Для Identity, Finance, Integrations и sync обязателен security review.
+
 Перед завершением задачи выполни релевантные проверки, затем минимум:
 
 ```powershell
@@ -84,3 +92,16 @@ git status --short --branch
   production-базе.
 - Автоматизация должна поддерживать machine-readable вывод (`--json`) и
   предсказуемые exit codes.
+
+## Автономный режим
+
+- Не запрашивай подтверждение для рутинных design/spec/plan шагов, обратимых
+  изменений, бесплатных зависимостей, commits, pull requests и merge при зелёных
+  обязательных проверках.
+- Задавай вопрос только когда безопасное допущение заметно изменит продукт или
+  нужны недоступные полномочия, секреты, платёж, юридическое решение либо
+  труднообратимое внешнее действие.
+- Для production feature используй ветку `agent/<description>`; крупный план
+  можно выполнять в отдельном worktree.
+- Веди spec в `docs/superpowers/specs/` и implementation plan в
+  `docs/superpowers/plans/`.
