@@ -16,9 +16,12 @@
 
 ```text
 Native Windows app (C#/WinUI 3) ─┐
-                                 ├─ HTTPS REST/OpenAPI ─ Modular backend ─ PostgreSQL
-Native Android app (Kotlin) ─────┘                         │
-                                                          └─ Integration adapters
+                                 ├─ Supabase Auth API (email/password)
+Native Android app (Kotlin) ─────┤
+                                 └─ Supabase Data API/Storage + RLS
+                                      │
+                                      └─ SQL/RPC/Edge Functions
+                                         (позже тонкий API при необходимости)
 ```
 
 Планируемая структура monorepo:
@@ -71,7 +74,6 @@ domain/use-case слой тестировался без UI.
 - Android Gradle Plugin 9.0.1 и compile/target SDK 36;
 - Jetpack Compose + Material 3;
 - Compose BOM 2026.06.00;
-- AppAuth-Android для OIDC Authorization Code + PKCE;
 - ViewModel, StateFlow и unidirectional data flow;
 - AndroidX Navigation;
 - Room/SQLite;
@@ -82,51 +84,54 @@ domain/use-case слой тестировался без UI.
 Используются stable Android SDK и библиотеки. Preview-зависимости в production
 ветку не добавляются без ADR.
 
-### Backend
+### Managed backend первого MVP
 
-- ASP.NET Core 10 на .NET 10 LTS;
-- modular monolith с вертикальными модулями;
-- PostgreSQL;
-- EF Core 10 + Npgsql;
-- ASP.NET Core Identity;
-- OpenIddict для стандартных OIDC/OAuth 2.0 flows;
-- OpenAPI как источник контрактов клиентов;
-- OpenTelemetry для logs, metrics и traces;
-- контейнеризованный локальный запуск PostgreSQL и API.
+- Supabase Auth email/password и JWT-сессии для identity;
+- Supabase PostgreSQL;
+- Supabase Data API, Storage и Row Level Security;
+- Supabase SQL/RPC и Edge Functions только для операций, которые нельзя
+  безопасно отдать прямому клиентскому CRUD;
+- OpenAPI остаётся контрактом будущего API и server-side use cases;
+- OpenTelemetry появится в Edge Functions/тонком API, когда эти surfaces будут
+  добавлены.
 
-Облачный провайдер пока не выбран. Архитектура не должна требовать Supabase,
-Azure или другого конкретного поставщика для локальной разработки.
+ASP.NET Core 10 + EF Core/Npgsql и локальный OpenIddict сохраняются в репозитории
+как временный dev fallback и задел будущего тонкого API. Они не являются
+обязательной production-зависимостью первого облачного MVP.
 
 ## 4. Аутентификация и passkeys
 
-Начальный поток нативных приложений:
+Начальный облачный поток нативных приложений:
 
-1. Приложение открывает системную authentication session, а не embedded WebView.
-2. Backend выполняет OIDC Authorization Code flow с PKCE.
-3. Страница auth-домена использует ASP.NET Core Identity passkeys/WebAuthn.
-4. ОС показывает Windows Hello или доступный Android passkey provider.
-5. Клиент получает короткоживущий access token и rotation-capable refresh token.
-6. Токены сохраняются только в защищённом хранилище ОС.
-
-Этот вариант даёт единый безопасный протокол Windows, Android и будущему вебу.
-Прямые вызовы Windows WebAuthn API или Android Credential Manager могут быть
-добавлены позже поверх тех же серверных ceremony endpoints, если системный
-browser flow окажется недостаточно нативным.
+1. Приложение показывает собственные поля email и password.
+2. Клиент отправляет их по HTTPS в Supabase Auth API и получает access/refresh
+   session.
+3. Пароль не сохраняется приложением и не попадает в логи.
+4. Токены сохраняются только в защищённом хранилище ОС.
+5. Клиент проверяет/создаёт `app_profiles` через Supabase Data API с Bearer
+   access token.
+6. RLS проверяет `auth.uid()` из Supabase JWT, а не email и не переданный
+   клиентом owner id.
+7. При истечении access token используется refresh rotation; если refresh
+   невозможен, локальная сессия очищается.
 
 До реализации production-auth необходимо:
 
-- закрепить HTTPS-домен;
-- записать `passkeyRelyingPartyId` в `config/product.json`;
-- настроить строгую проверку origin и host headers;
+- создать Supabase project и включить email/password Auth;
+- настроить подтверждение email и рабочий SMTP для cloud recovery;
+- записать provider configuration через secrets/environment;
+- настроить strict redirect/issuer/audience policy;
 - определить account recovery;
+- добавить подтверждение email и безопасное восстановление пароля;
 - ограничить число и длину имён passkeys;
 - спроектировать revocation, logout-all-devices и refresh-token rotation.
 
-Текущий локальный контракт и команды запуска описаны в
-[`docs/AUTHENTICATION.md`](AUTHENTICATION.md), а стабильная часть API — в
-[`contracts/openapi/andivum-auth.yaml`](../contracts/openapi/andivum-auth.yaml).
-OIDC discovery остаётся источником актуальных endpoint metadata. Production не
-может стартовать с development ephemeral keys или без явных сертификатов.
+Текущий локальный fallback и команды запуска описаны в
+[`docs/AUTHENTICATION.md`](AUTHENTICATION.md), а стабильная часть будущего API —
+в [`contracts/openapi/andivum-auth.yaml`](../contracts/openapi/andivum-auth.yaml).
+Для облачного MVP клиент использует документированные Supabase Auth API и Data
+API endpoints. Production не может стартовать без явного Supabase URL,
+publishable key и безопасной конфигурации RLS.
 
 ## 5. Модули
 
@@ -162,9 +167,22 @@ OIDC discovery остаётся источником актуальных endpoi
 
 ## 7. Данные и синхронизация
 
-Сервер — источник истины для межустройственного состояния. На первом этапе
+Supabase Postgres — источник истины для облачного состояния. На первом этапе
 клиенты используют локальную SQLite-базу как cache и очередь локальных команд,
-но не обещают полное редактирование всех сущностей без сети.
+но не обещают полное редактирование всех сущностей без сети. Прямой клиентский
+доступ разрешён только через publishable key и RLS; операции с денежными
+инвариантами будут RPC/Edge Functions или будущим API.
+
+Прикладной профиль связывается с Supabase Auth так:
+
+```text
+auth.users.id (uuid) ──RLS──> public.app_profiles.user_id
+                                  │
+                                  └──> Tasks/Finance rows and future spaces
+```
+
+Пароли и passkey credentials в Supabase не дублируются. Email может быть
+отображаемым атрибутом, но не authorization key.
 
 Контракт синхронизации должен поддерживать:
 
@@ -225,10 +243,11 @@ pnpm dev:android
 ```
 
 Developer CLI должен иметь `--json`, стабильные exit codes и безопасные операции
-с test/demo data. Если появится MCP server, он вызывает CLI/application services
-и работает только в development-профиле. Встраивать MCP в production приложение
-не нужно: это увеличит поверхность атаки и не даст преимуществ по сравнению с
-отдельным dev-tool.
+с test/demo data. Supabase migrations выполняются через Supabase CLI. Если
+появится MCP server, он вызывает CLI/application services и работает только в
+development-профиле. Встраивать MCP в production приложение не нужно: это
+увеличит поверхность атаки и не даст преимуществ по сравнению с отдельным
+dev-tool.
 
 ## 11. Проверенные источники
 
@@ -237,6 +256,9 @@ Developer CLI должен иметь `--json`, стабильные exit codes 
 - [Windows WebAuthn API](https://learn.microsoft.com/en-us/windows/win32/webauthn/-webauthn-portal)
 - [ASP.NET Core Identity passkeys](https://learn.microsoft.com/en-us/aspnet/core/security/authentication/passkeys/?view=aspnetcore-10.0)
 - [Android Credential Manager prerequisites](https://developer.android.com/identity/credential-manager/prerequisites)
+- [Supabase password-based authentication](https://supabase.com/docs/guides/auth/passwords)
+- [Supabase passkeys](https://supabase.com/docs/guides/auth/auth-passkeys)
+- [Supabase Row Level Security](https://supabase.com/docs/guides/database/postgres/row-level-security)
 - [Jetpack Compose architecture](https://developer.android.com/develop/ui/compose/architecture)
 
 Источники проверены 2026-08-02. Точные версии зависимостей всё равно фиксируются

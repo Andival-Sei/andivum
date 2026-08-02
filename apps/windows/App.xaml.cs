@@ -1,11 +1,10 @@
+using Andivum_Windows.Auth;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
-using Microsoft.Windows.AppLifecycle;
-using Windows.ApplicationModel.Activation;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -17,6 +16,8 @@ namespace Andivum_Windows;
 /// </summary>
 public partial class App : Application
 {
+    public static AuthConfiguration? LaunchAuthConfiguration { get; private set; }
+
     /// <summary>
     /// The main application window. Use <c>App.Window</c> from any class that needs
     /// the window reference (for dialogs, pickers, interop, etc.).
@@ -52,15 +53,14 @@ public partial class App : Application
     /// <param name="args">Details about the launch request and process.</param>
     protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
     {
-        var activatedArgs = AppInstance.GetCurrent().GetActivatedEventArgs();
+        LaunchAuthConfiguration = AuthConfiguration.FromLaunchArguments(
+            args.Arguments,
+            Environment.GetEnvironmentVariable)
+            ?? AuthConfiguration.FromProcessArguments(
+                Environment.GetCommandLineArgs(),
+                Environment.GetEnvironmentVariable);
         Window = new MainWindow();
         DispatcherQueue = Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread();
-        if (activatedArgs?.Kind == ExtendedActivationKind.Protocol &&
-            activatedArgs.Data is IProtocolActivatedEventArgs protocolArgs)
-        {
-            ((MainWindow)Window).HandleProtocolActivation(protocolArgs.Uri);
-        }
-
         Window.Activate();
     }
 

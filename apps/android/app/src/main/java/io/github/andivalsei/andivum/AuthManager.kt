@@ -1,76 +1,57 @@
 package io.github.andivalsei.andivum
 
 import android.content.Context
-import android.content.Intent
-import net.openid.appauth.AuthorizationException
-import net.openid.appauth.AuthorizationRequest
-import net.openid.appauth.AuthorizationResponse
-import net.openid.appauth.AuthorizationService
-import net.openid.appauth.AuthorizationServiceConfiguration
-import net.openid.appauth.ResponseTypeValues
-import net.openid.appauth.AuthState
-import android.net.Uri
 
 class AuthManager(context: Context) {
-    companion object {
-        const val clientId = "andivum-android"
-        const val redirectUri = "andivum://android/auth/callback"
+    private val configuration = AuthConfiguration.fromBuildConfig()
+    private val tokenStore = SecureAuthStateStore(context.applicationContext)
+    private val client = SupabaseAuthClient(
+        configuration.supabaseUrl,
+        configuration.supabasePublishableKey,
+        tokenStore,
+    )
+
+    val authConfiguration: AuthConfiguration
+        get() = configuration
+
+    fun isSignedIn(): Boolean = client.currentSession() != null
+
+    fun signIn(
+        email: String,
+        password: String,
+        onComplete: (Result<AuthOperationResult>) -> Unit,
+    ) {
+        Thread {
+            runCatching { client.signIn(email, password) }
+                .let(onComplete)
+        }.start()
     }
 
-    private val appContext = context.applicationContext
-    private val issuer = BuildConfig.API_BASE_URL
-    private val authorizationService = AuthorizationService(appContext)
-    private val stateStore = SecureAuthStateStore(appContext)
-    private var state = stateStore.read() ?: AuthState()
-
-    fun startSignIn(onReady: (Intent) -> Unit, onError: (String) -> Unit) {
-        AuthorizationServiceConfiguration.fetchFromIssuer(Uri.parse(issuer)) { configuration, exception ->
-            if (configuration == null) {
-                onError(exception?.errorDescription ?: "OIDC discovery failed")
-                return@fetchFromIssuer
-            }
-
-            val request = AuthorizationRequest.Builder(
-                configuration,
-                clientId,
-                ResponseTypeValues.CODE,
-                Uri.parse(redirectUri),
-            )
-                .setScope("openid profile")
-                .setCodeVerifier(Pkce.createVerifier())
-                .build()
-            onReady(authorizationService.getAuthorizationRequestIntent(request))
-        }
+    fun signUp(
+        email: String,
+        password: String,
+        onComplete: (Result<AuthOperationResult>) -> Unit,
+    ) {
+        Thread {
+            runCatching { client.signUp(email, password) }
+                .let(onComplete)
+        }.start()
     }
 
-    fun handleCallback(intent: Intent, onComplete: (String) -> Unit) {
-        val response = AuthorizationResponse.fromIntent(intent)
-        val exception = AuthorizationException.fromIntent(intent)
-        state = AuthState()
-        state.update(response, exception)
-        stateStore.write(state)
-        if (response is AuthorizationResponse) {
-            authorizationService.performTokenRequest(response.createTokenExchangeRequest()) { tokenResponse, tokenException ->
-                state.update(tokenResponse, tokenException)
-                stateStore.write(state)
-                onComplete(
-                    if (tokenException == null) "Signed in with passkey" else
-                        tokenException.errorDescription ?: "Token exchange failed",
-                )
-            }
-        } else {
-            onComplete(exception?.errorDescription ?: "Authorization failed")
-        }
+    fun validateSession(onComplete: (Result<SessionResponse>) -> Unit) {
+        Thread {
+            runCatching { client.getCurrentSession() }
+                .let(onComplete)
+        }.start()
     }
 
-    fun isSignedIn(): Boolean = state.isAuthorized
+    fun clearSession() {
+        client.clearSession()
+    }
 
     fun signOut() {
-        state = AuthState()
-        stateStore.clear()
+        Thread { client.signOut() }.start()
     }
 
-    fun close() {
-        authorizationService.dispose()
-    }
+    fun close() = Unit
 }

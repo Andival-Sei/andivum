@@ -8,25 +8,161 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="16" MaxWidth="420">
-        <TextBlock
-            Text="{x:Bind ViewModel.Greeting, Mode=OneWay}"
-            Style="{StaticResource TitleTextBlockStyle}" />
-        <TextBlock
-            Text="Sign in once to access your tasks and finances on every device."
-            TextWrapping="Wrap"
-            Style="{StaticResource BodyTextBlockStyle}" />
-        <Button
-            Content="Continue with passkey"
-            Command="{x:Bind ViewModel.SignInCommand}"
-            HorizontalAlignment="Left" />
-        <Button
-            Content="Sign out"
-            Command="{x:Bind ViewModel.SignOutCommand}"
-            HorizontalAlignment="Left" />
-        <TextBlock
-            Text="{x:Bind ViewModel.SessionStatus, Mode=OneWay}"
-            TextWrapping="Wrap"
-            Style="{StaticResource CaptionTextBlockStyle}" />
-    </StackPanel>
+    <Grid Padding="48,40,48,48">
+        <Grid x:Name="SignInSurface" Visibility="{x:Bind ViewModel.SignInVisibility, Mode=OneWay}">
+            <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+                <StackPanel MaxWidth="720" HorizontalAlignment="Center" Spacing="24">
+                    <StackPanel Orientation="Horizontal" Spacing="16">
+                        <Border
+                            Width="56"
+                            Height="56"
+                            CornerRadius="18"
+                            Background="{ThemeResource AccentFillColorDefaultBrush}">
+                            <TextBlock
+                                Text="A"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                FontSize="28"
+                                FontWeight="SemiBold"
+                                Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}" />
+                        </Border>
+                        <StackPanel VerticalAlignment="Center" Spacing="2">
+                            <TextBlock
+                                Text="{x:Bind ViewModel.Greeting, Mode=OneWay}"
+                                FontSize="22"
+                                FontWeight="SemiBold" />
+                            <TextBlock x:Uid="AuthEyebrow" Style="{StaticResource CaptionTextBlockStyle}" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <StackPanel Spacing="10">
+                        <TextBlock x:Uid="AuthTitle" FontSize="42" FontWeight="SemiBold" TextWrapping="Wrap" />
+                        <TextBlock x:Uid="AuthSubtitle" Style="{StaticResource BodyTextBlockStyle}" TextWrapping="Wrap" />
+                    </StackPanel>
+
+                    <Border
+                        Padding="30"
+                        CornerRadius="26"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1">
+                        <StackPanel Spacing="14">
+                            <TextBlock x:Uid="AuthCardTitle" FontSize="22" FontWeight="SemiBold" />
+                            <TextBlock x:Uid="AuthCardBody" Style="{StaticResource BodyTextBlockStyle}" TextWrapping="Wrap" />
+                            <TextBox
+                                x:Uid="AuthEmailBox"
+                                Text="{x:Bind ViewModel.Email, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                IsEnabled="{x:Bind ViewModel.IsAuthActionEnabled, Mode=OneWay}" />
+                            <PasswordBox
+                                x:Uid="AuthPasswordBox"
+                                x:Name="AuthPasswordBox"
+                                PasswordChanged="OnPasswordChanged"
+                                IsEnabled="{x:Bind ViewModel.IsAuthActionEnabled, Mode=OneWay}" />
+                            <Button
+                                x:Uid="SignInButton"
+                                Command="{x:Bind ViewModel.SignInCommand}"
+                                IsEnabled="{x:Bind ViewModel.IsAuthActionEnabled, Mode=OneWay}"
+                                Padding="24,12" />
+                            <Button
+                                x:Uid="SignUpButton"
+                                Command="{x:Bind ViewModel.SignUpCommand}"
+                                IsEnabled="{x:Bind ViewModel.IsAuthActionEnabled, Mode=OneWay}"
+                                Padding="24,12" />
+                        </StackPanel>
+                    </Border>
+
+                    <TextBlock
+                        Text="{x:Bind ViewModel.SessionStatus, Mode=OneWay}"
+                        Style="{StaticResource CaptionTextBlockStyle}"
+                        TextWrapping="Wrap" />
+                    <TextBlock
+                        x:Uid="AuthSecurityNote"
+                        Style="{StaticResource CaptionTextBlockStyle}"
+                        TextWrapping="Wrap" />
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+
+        <Grid x:Name="DashboardSurface" Visibility="{x:Bind ViewModel.DashboardVisibility, Mode=OneWay}">
+            <Grid ColumnDefinitions="220,*" ColumnSpacing="32">
+                <NavigationView
+                    Grid.Column="0"
+                    IsBackButtonVisible="Collapsed"
+                    IsPaneOpen="True"
+                    IsSettingsVisible="False"
+                    PaneDisplayMode="Left"
+                    SelectedItem="{x:Bind OverviewNavigationItem}">
+                    <NavigationView.MenuItems>
+                        <NavigationViewItem x:Name="OverviewNavigationItem" x:Uid="NavigationOverview" />
+                        <NavigationViewItem x:Uid="NavigationTasks" IsEnabled="False" />
+                        <NavigationViewItem x:Uid="NavigationFinance" IsEnabled="False" />
+                    </NavigationView.MenuItems>
+                </NavigationView>
+
+                <ScrollViewer Grid.Column="1" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel MaxWidth="920" Spacing="24">
+                        <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
+                            <StackPanel Spacing="4">
+                                <TextBlock x:Uid="DashboardEyebrow" Style="{StaticResource CaptionTextBlockStyle}" />
+                                <TextBlock x:Uid="DashboardTitle" FontSize="38" FontWeight="SemiBold" TextWrapping="Wrap" />
+                            </StackPanel>
+                            <Button
+                                Grid.Column="1"
+                                x:Uid="AccountSettingsButton"
+                                Command="{x:Bind ViewModel.OpenAccountSettingsCommand}"
+                                HorizontalAlignment="Right" />
+                            <Button
+                                Grid.Column="2"
+                                x:Uid="SignOutButton"
+                                Command="{x:Bind ViewModel.SignOutCommand}"
+                                HorizontalAlignment="Right" />
+                        </Grid>
+
+                        <Border
+                            Padding="30"
+                            CornerRadius="26"
+                            Background="{ThemeResource AccentFillColorDefaultBrush}">
+                            <StackPanel Spacing="10">
+                                <TextBlock x:Uid="DashboardBody" TextWrapping="Wrap" Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}" />
+                                <TextBlock x:Uid="DashboardHint" TextWrapping="Wrap" Foreground="{ThemeResource TextOnAccentFillColorSecondaryBrush}" />
+                                <TextBlock
+                                    Text="{x:Bind ViewModel.SessionStatus, Mode=OneWay}"
+                                    TextWrapping="Wrap"
+                                    Foreground="{ThemeResource TextOnAccentFillColorSecondaryBrush}" />
+                            </StackPanel>
+                        </Border>
+
+                        <TextBlock x:Uid="DashboardModules" FontSize="24" FontWeight="SemiBold" />
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="16">
+                            <Border
+                                Padding="24"
+                                CornerRadius="22"
+                                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                BorderThickness="1">
+                                <StackPanel Spacing="10">
+                                    <TextBlock x:Uid="TasksCardTitle" FontSize="22" FontWeight="SemiBold" />
+                                    <TextBlock x:Uid="TasksCardBody" Style="{StaticResource BodyTextBlockStyle}" TextWrapping="Wrap" />
+                                    <TextBlock x:Uid="ModuleComingSoon" Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                                </StackPanel>
+                            </Border>
+                            <Border
+                                Grid.Column="1"
+                                Padding="24"
+                                CornerRadius="22"
+                                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                BorderThickness="1">
+                                <StackPanel Spacing="10">
+                                    <TextBlock x:Uid="FinanceCardTitle" FontSize="22" FontWeight="SemiBold" />
+                                    <TextBlock x:Uid="FinanceCardBody" Style="{StaticResource BodyTextBlockStyle}" TextWrapping="Wrap" />
+                                    <TextBlock x:Uid="ModuleComingSoon" Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+        </Grid>
+    </Grid>
 </Page>

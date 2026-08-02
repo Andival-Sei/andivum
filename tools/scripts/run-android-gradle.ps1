@@ -1,4 +1,6 @@
 param(
+    [string] $ApiBaseUrl,
+    [switch] $Cloud,
     [Parameter(ValueFromRemainingArguments = $true)]
     [string[]] $GradleArguments
 )
@@ -19,5 +21,51 @@ if (-not $javaHome) {
 $env:JAVA_HOME = $javaHome
 $gradleWrapper = Join-Path $repoRoot "apps/android/gradlew.bat"
 Set-Location (Join-Path $repoRoot "apps/android")
-& $gradleWrapper @GradleArguments
+$firstArgumentIsGradleTask = $ApiBaseUrl -and
+    $ApiBaseUrl -notmatch '^[a-z][a-z0-9+.-]*://'
+$effectiveGradleArguments = @($GradleArguments)
+if ($firstArgumentIsGradleTask) {
+    $effectiveGradleArguments = @($ApiBaseUrl) + $effectiveGradleArguments
+    $ApiBaseUrl = $null
+}
+
+if ($Cloud) {
+    $cloudEnvFile = Join-Path $repoRoot ".env.andivum.local"
+    if (-not (Test-Path -LiteralPath $cloudEnvFile)) {
+        throw "Не найден $cloudEnvFile. Создайте локальный файл с публичной cloud-конфигурацией Andivum."
+    }
+
+    $cloudValues = @{}
+    foreach ($line in Get-Content -LiteralPath $cloudEnvFile) {
+        if ($line -match '^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)\s*$') {
+            $key = $Matches[1]
+            $value = $Matches[2].Trim()
+            if ($value.Length -ge 2 -and
+                (($value.StartsWith('"') -and $value.EndsWith('"')) -or
+                 ($value.StartsWith("'") -and $value.EndsWith("'")))) {
+                $value = $value.Substring(1, $value.Length - 2)
+            }
+            $cloudValues[$key] = $value
+        }
+    }
+
+    $cloudProperties = [ordered]@{
+        ANDIVUM_AUTH_PROVIDER = "andivumAuthProvider"
+        ANDIVUM_SUPABASE_URL = "andivumSupabaseUrl"
+        ANDIVUM_SUPABASE_PUBLISHABLE_KEY = "andivumSupabasePublishableKey"
+    }
+
+    foreach ($entry in $cloudProperties.GetEnumerator()) {
+        $value = $cloudValues[$entry.Key]
+        if ([string]::IsNullOrWhiteSpace($value)) {
+            throw "В $cloudEnvFile не задано обязательное значение $($entry.Key)."
+        }
+        $effectiveGradleArguments += "-P$($entry.Value)=$value"
+    }
+}
+
+if ($ApiBaseUrl) {
+    $effectiveGradleArguments += "-PandivumApiBaseUrl=$ApiBaseUrl"
+}
+& $gradleWrapper @effectiveGradleArguments
 exit $LASTEXITCODE

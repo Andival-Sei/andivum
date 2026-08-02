@@ -16,5 +16,20 @@ public sealed partial class MainPage : Page
     public MainPage()
     {
         InitializeComponent();
+        Loaded += OnLoaded;
+    }
+
+    private async void OnLoaded(object sender, Microsoft.UI.Xaml.RoutedEventArgs args)
+    {
+        Loaded -= OnLoaded;
+        await ViewModel.InitializeAsync();
+    }
+
+    private void OnPasswordChanged(object sender, Microsoft.UI.Xaml.RoutedEventArgs args)
+    {
+        if (sender is Microsoft.UI.Xaml.Controls.PasswordBox passwordBox)
+        {
+            ViewModel.Password = passwordBox.Password;
+        }
     }
 }

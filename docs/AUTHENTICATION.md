@@ -1,88 +1,163 @@
 # Authentication vertical slice
 
-Этот документ описывает текущий локальный контракт авторизации Andivum для
-Windows и Android. Источник машинно-читаемого контракта —
-[`contracts/openapi/andivum-auth.yaml`](../contracts/openapi/andivum-auth.yaml),
-а точные endpoint metadata всегда берутся из OIDC discovery.
+Andivum использует Supabase Auth как источник identity и Supabase как managed
+data backend первого облачного MVP. Текущий локальный OpenIddict остаётся
+явным dev fallback только для локальных API-тестов.
 
-## Что уже реализовано
+## Целевая облачная схема
 
-- ASP.NET Core Identity хранит пользователей и passkeys в PostgreSQL.
-- OpenIddict предоставляет OIDC discovery, authorization code и refresh token
-  flows.
-- Нативные клиенты являются public clients: `andivum-windows` и
-  `andivum-android` не имеют client secret.
-- Для native authorization обязателен Authorization Code + PKCE с `S256`.
-- Access token живёт 5 минут, refresh token — 30 дней с rolling rotation.
-- Passkey request options используют discoverable credentials и не принимают
-  username.
-- Mutating passkey endpoints защищены anti-forgery token.
-
-Регистрация нового аккаунта, восстановление аккаунта, logout-all-devices и
-полный нативный UI пока остаются следующими срезами. Поэтому на текущем этапе
-это серверный auth foundation, а не готовая пользовательская регистрация.
-
-## Локальный запуск
-
-В PowerShell из корня репозитория:
-
-```powershell
-Copy-Item .env.example .env
-dotnet dev-certs https --trust
-pnpm install
-pnpm dev:infra
-pnpm dev:api
+```text
+Windows/Android
+      │ HTTPS: email/password
+      ▼
+Supabase Auth API
+      │ access/refresh JWT session
+      ▼
+Supabase Data API / Storage
+      │ auth.uid() + RLS
+      ▼
+app_profiles, Tasks, Finance
 ```
 
-API доступен по адресу `https://localhost:7240`. `pnpm dev:api` использует
-локальную PostgreSQL-базу из `.env`, включает только для неё
-`Database:AutoMigrate=true` и создаёт зарегистрированные native clients.
-Подключение к внешней базе не включает автоматические миграции.
+Supabase Auth хранит identity и выдаёт access/refresh-сессии. Пароли не
+копируются в таблицы приложения и не попадают в логи. Supabase хранит
+прикладной профиль и данные модулей.
 
-Android Emulator обращается к машине разработчика через `10.0.2.2`; debug
-сборка поэтому использует `https://10.0.2.2:7240`. Доверие к локальному
-сертификату на эмуляторе будет добавлено в отдельном device-smoke шаге до
-проверки реального обмена токенами.
+## Идентификатор пользователя и RLS
 
-Для остановки инфраструктуры:
+`auth.users.id` — стабильный UUID identity. `app_profiles.user_id` ссылается на
+него и используется как владелец строки. Email может измениться и не является
+ключом авторизации.
 
-```powershell
-docker compose --env-file .env -f infra/compose/docker-compose.yml down
+```sql
+to authenticated
+using ((select auth.uid()) = user_id)
+with check ((select auth.uid()) = user_id)
 ```
 
-## Native OIDC flow
+Для будущих family spaces проверяется membership, а не только строка профиля.
+Каждая таблица в exposed schema должна иметь RLS и explicit policies.
 
-1. Клиент генерирует `state`, `code_verifier` и `code_challenge` методом S256.
-2. Клиент открывает `/connect/authorize` в системной browser/authentication
-   session. Embedded WebView не используется.
-3. Пользователь проходит passkey ceremony на auth-домене.
-4. Сервер возвращает authorization code на точный custom-scheme callback.
-5. Клиент обменивает code на `/connect/token`, передавая тот же
-   `code_verifier`.
-6. Access и refresh tokens хранятся только в защищённом хранилище ОС.
-7. При истечении access token клиент выполняет refresh-token grant и заменяет
-   старый refresh token новым.
+## Supabase configuration
 
-Текущие development callbacks:
+В Supabase project `Andivum` включены email/password Auth и ротация refresh
+токенов. Подтверждение email остаётся включённым для cloud-проекта.
 
-| Клиент | Redirect URI |
-| --- | --- |
-| Windows | `andivum://windows/auth/callback` |
-| Android | `andivum://android/auth/callback` |
+Для cloud-проекта поле `Site URL` в Supabase Auth должно указывать на адрес
+Andivum, а не на URL другого приложения. Если native-клиент не передаёт
+отдельный `redirectTo`, Supabase использует именно `Site URL` после перехода
+по письму подтверждения. Локальный адрес предыдущего приложения здесь
+запрещён.
 
-URI сравниваются целиком, включая path и завершающий slash. В production
-появятся отдельные HTTPS-домен, RP ID, сертификаты OpenIddict и redirect policy;
-development keys и localhost RP ID туда не переносятся.
+Применяемые миграции находятся в `supabase/migrations`. Security и performance
+advisors запускаются после изменения схемы. Supabase client получает URL и
+publishable key из окружения приложения. Service-role key и пароль PostgreSQL в
+native apps запрещены.
+
+## Подключение настроек к локальным клиентам
+
+Windows получает значения из окружения процесса. Рекомендуемый helper
+`windows:run` дополнительно передаёт их упакованному WinUI-процессу через
+launch-параметры, потому что package-aware запуск не обязан наследовать env
+родительского Node-процесса:
+
+```powershell
+$env:ANDIVUM_AUTH_PROVIDER = "supabase"
+$env:ANDIVUM_SUPABASE_URL = "https://<project-ref>.supabase.co"
+$env:ANDIVUM_SUPABASE_PUBLISHABLE_KEY = "<publishable-key>"
+pnpm windows:build
+pnpm windows:run
+```
+
+`windows:build` только собирает приложение. Для запуска WinUI используйте
+`windows:run`: эта команда запускает приложение через `dotnet run` и создаёт
+необходимую служебную регистрацию Windows App SDK, а также передаёт текущую
+Supabase-конфигурацию в приложение.
+
+У упакованного WinUI бывают два варианта доставки аргументов запуска: через
+`LaunchActivatedEventArgs` или через обычную командную строку процесса. Клиент
+читает оба варианта, поэтому cloud-запуск не должен незаметно откатываться к
+локальному `localhost:54321`.
+
+Android получает эти публичные значения как Gradle properties. Если в корне
+есть неотслеживаемый `.env.andivum.local`, достаточно выполнить:
+
+```powershell
+pnpm android:build:cloud
+```
+
+Команда сама передаст cloud-значения в Gradle. Ручной вариант:
+
+```powershell
+pnpm android:build -- `
+  "-PandivumAuthProvider=supabase" `
+  "-PandivumSupabaseUrl=https://<project-ref>.supabase.co" `
+  "-PandivumSupabasePublishableKey=<publishable-key>" `
+  assembleDebug
+```
+
+Публикуемый ключ разрешено встраивать в клиентскую сборку. Service-role/secret
+key в неё встраивать нельзя.
+
+## Local development fallback
+
+Локальный API доступен по адресу `https://localhost:7240` и нужен для API
+integration tests и offline-разработки. Он не является production identity
+provider. Для cloud Auth smoke используйте реальные Supabase URL и publishable
+key из `.env.andivum.local`.
+
+## Native cloud flow
+
+1. Клиент читает Supabase URL и publishable key из configuration.
+2. Пользователь вводит email/password в нативном экране.
+3. Клиент отправляет данные в `/auth/v1/signup` или
+   `/auth/v1/token?grant_type=password` по HTTPS.
+4. После успешного ответа access/refresh tokens сохраняются только в secure
+   storage ОС.
+5. Клиент получает или создаёт `app_profiles` через Data API с Bearer access
+   token и только после этого открывает dashboard.
+6. При истечении access token выполняется
+   `/auth/v1/token?grant_type=refresh_token` с rotation. Если refresh невозможен,
+   локальная сессия очищается.
+7. Выход вызывает `/auth/v1/logout` и очищает локальную копию токенов.
+
+## Passkeys и внешние провайдеры
+
+Passkey не является обязательным для первого email/password MVP. Supabase
+passkeys находятся в Beta и требуют отдельной проверки WebAuthn/Relying Party
+на Android и Windows. Google, Steam и другие OAuth-провайдеры подключаются
+отдельными срезами и могут использовать системный браузер/OS UI.
+
+## Секреты и логирование
+
+Разрешено хранить в приложении только Supabase URL и publishable key. Нельзя
+коммитить или логировать:
+
+- Supabase service-role/secret key;
+- пароль PostgreSQL;
+- access/refresh tokens;
+- integration OAuth refresh tokens.
 
 ## Проверки
+
+Данные локального disposable smoke-аккаунта хранятся отдельно от Git в
+`.env.andivum.test.local`. Правила использования и минимальный сценарий
+проверки описаны в [`docs/TESTING.md`](TESTING.md); реальные значения нельзя
+выводить в логи или сообщения.
 
 ```powershell
 pnpm doctor
 pnpm check
 pnpm api:build
+pnpm windows:build
 git diff --check
 ```
 
-Для passkey-тестирования браузеру нужен доверенный локальный HTTPS-сертификат.
-Реальный Windows Hello и Android Credential Manager будут проверены отдельным
-device-smoke этапом после создания нативных оболочек.
+Облачный flow дополнительно требует:
+
+- mocked HTTP tests signup/sign-in/refresh/logout и profile bootstrap;
+- Supabase migration/RLS integration test;
+- Windows runtime smoke с Supabase Auth;
+- physical Android smoke с Supabase Auth;
+- один и тот же Supabase user ID на Windows и Android;
+- проверку, что service-role key отсутствует в APK/MSIX и логах.

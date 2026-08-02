@@ -93,6 +93,13 @@ public sealed class AuthPolicyTests
     }
 
     [Fact]
+    public void Authorization_requires_at_least_one_registered_passkey()
+    {
+        Assert.False(AuthPolicy.CanAuthorizeWithPasskey(0));
+        Assert.True(AuthPolicy.CanAuthorizeWithPasskey(1));
+    }
+
+    [Fact]
     public void Native_redirects_are_exact_and_client_secrets_are_rejected()
     {
         var registry = NativeClientRegistry.CreateDevelopment();

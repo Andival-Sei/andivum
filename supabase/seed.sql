@@ -1,0 +1,2 @@
+-- Local Supabase seed data is intentionally empty.
+-- Test fixtures must be created by isolated tests, never from production-like defaults.

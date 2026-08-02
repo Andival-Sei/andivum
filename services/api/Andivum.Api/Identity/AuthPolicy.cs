@@ -19,6 +19,11 @@ public static class AuthPolicy
             activePasskeyCount < MaxActivePasskeysPerUser;
     }
 
+    public static bool CanAuthorizeWithPasskey(int activePasskeyCount)
+    {
+        return activePasskeyCount > 0;
+    }
+
     public static bool IsAllowedOrigin(
         string? origin,
         IEnumerable<string> allowedOrigins)

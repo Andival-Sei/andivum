@@ -78,6 +78,47 @@ public static class PasskeyEndpoints
             .RequireAuthorization();
 
         endpoints.MapPost(
+            "/Account/PasskeyRegistrationStart",
+            async (
+                HttpContext context,
+                IAntiforgery antiforgery,
+                UserManager<ApplicationUser> userManager,
+                SignInManager<ApplicationUser> signInManager,
+                PasskeyRegistrationRequest request) =>
+            {
+                if (!await IsAntiForgeryValidAsync(context, antiforgery))
+                {
+                    return Results.BadRequest(new { code = "invalid_csrf" });
+                }
+
+                if (!AuthPolicy.IsPasskeyDisplayNameAllowed(request.DisplayName))
+                {
+                    return Results.ValidationProblem(new Dictionary<string, string[]>
+                    {
+                        ["displayName"] = ["The passkey name is invalid."],
+                    });
+                }
+
+                var user = await userManager.GetUserAsync(context.User);
+                if (user is null)
+                {
+                    return Results.Unauthorized();
+                }
+
+                var optionsJson = await signInManager.MakePasskeyCreationOptionsAsync(
+                    new()
+                    {
+                        Id = user.Id.ToString(),
+                        Name = user.UserName!,
+                        DisplayName = request.DisplayName,
+                    });
+
+                return TypedResults.Content(
+                    optionsJson,
+                    contentType: "application/json");
+            });
+
+        endpoints.MapPost(
             "/Account/PasskeyAttestation",
             async (
                 HttpContext context,
@@ -168,6 +209,8 @@ public static class PasskeyEndpoints
 }
 
 public sealed record PasskeyCreationRequest(string DisplayName);
+
+public sealed record PasskeyRegistrationRequest(string DisplayName);
 
 public sealed record PasskeyAttestationRequest(
     string CredentialJson,

@@ -1,0 +1,23 @@
+package io.github.andivalsei.andivum
+
+enum class AuthShellScreen {
+    SIGN_IN,
+    DASHBOARD,
+}
+
+data class AuthShellState(
+    val isSignedIn: Boolean,
+    val isBusy: Boolean = false,
+    val message: String? = null,
+    val sessionStatus: String? = null,
+) {
+    val screen: AuthShellScreen
+        get() = if (isSignedIn) AuthShellScreen.DASHBOARD else AuthShellScreen.SIGN_IN
+}
+
+fun AuthShellState.recoverAfterAuthFailure(message: String): AuthShellState = copy(
+    isSignedIn = false,
+    isBusy = false,
+    message = message,
+    sessionStatus = null,
+)
