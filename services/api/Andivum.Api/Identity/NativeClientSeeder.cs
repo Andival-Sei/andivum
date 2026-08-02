@@ -16,13 +16,6 @@ public static class NativeClientSeeder
         {
             foreach (var client in registry.Clients)
             {
-                if (await manager.FindByClientIdAsync(
-                        client.ClientId,
-                        cancellationToken) is not null)
-                {
-                    continue;
-                }
-
                 var descriptor = new OpenIddictApplicationDescriptor
                 {
                     ClientId = client.ClientId,
@@ -44,9 +37,24 @@ public static class NativeClientSeeder
                     OpenIddictConstants.Permissions.GrantTypes.RefreshToken,
                     OpenIddictConstants.Permissions.ResponseTypes.Code,
                     OpenIddictConstants.Permissions.Scopes.Profile,
+                    OpenIddictConstants.Permissions.Prefixes.Scope +
+                    OpenIddictConstants.Scopes.OfflineAccess,
                 ]);
 
-                await manager.CreateAsync(descriptor, cancellationToken);
+                var existing = await manager.FindByClientIdAsync(
+                    client.ClientId,
+                    cancellationToken);
+                if (existing is null)
+                {
+                    await manager.CreateAsync(descriptor, cancellationToken);
+                }
+                else
+                {
+                    await manager.UpdateAsync(
+                        existing,
+                        descriptor,
+                        cancellationToken);
+                }
             }
         }
         finally

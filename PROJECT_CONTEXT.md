@@ -69,8 +69,11 @@ UI, интеграция с ОС, локальное хранение и час�
 - Не выбираем облачного провайдера до появления работающего локального vertical
   slice.
 
-## Следующая цель
+## Текущий следующий шаг
 
-Создать сквозной authentication slice: локальный backend, PostgreSQL,
-registration/sign-in с passkey через системный браузер, пустая авторизованная
-оболочка WinUI 3 и Android Compose, плюс контрактные и smoke-тесты.
+Нативные login/dashboard shells для Windows и Android уже созданы и подключены
+к passkey-flow. Защищённый `GET /api/v1/session`, обновление access/refresh
+токенов и стабильный `userId` уже подключены к обоим клиентам; физический
+Android smoke подтверждает серверную проверку. Следующая цель authentication
+slice — logout, account recovery и ручной Windows/Android smoke одного аккаунта.
+После этого начинается Tasks vertical slice.

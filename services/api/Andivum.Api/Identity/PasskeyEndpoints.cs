@@ -78,6 +78,65 @@ public static class PasskeyEndpoints
             .RequireAuthorization();
 
         endpoints.MapPost(
+            "/Account/PasskeyRegistrationStart",
+            async (
+                HttpContext context,
+                IAntiforgery antiforgery,
+                UserManager<ApplicationUser> userManager,
+                SignInManager<ApplicationUser> signInManager,
+                PasskeyRegistrationRequest request) =>
+            {
+                if (!await IsAntiForgeryValidAsync(context, antiforgery))
+                {
+                    return Results.BadRequest(new { code = "invalid_csrf" });
+                }
+
+                if (!AuthPolicy.IsPasskeyDisplayNameAllowed(request.DisplayName))
+                {
+                    return Results.ValidationProblem(new Dictionary<string, string[]>
+                    {
+                        ["displayName"] = ["The passkey name is invalid."],
+                    });
+                }
+
+                var user = await userManager.GetUserAsync(context.User);
+                if (user is not null)
+                {
+                    var existingPasskeys = await userManager.GetPasskeysAsync(user);
+                    if (AuthPolicy.CanAuthorizeWithPasskey(existingPasskeys.Count))
+                    {
+                        return Results.BadRequest(new { code = "already_registered" });
+                    }
+                }
+                else
+                {
+                    user = new ApplicationUser
+                    {
+                        UserName = $"passkey-{Guid.NewGuid():N}",
+                    };
+                    var createResult = await userManager.CreateAsync(user);
+                    if (!createResult.Succeeded)
+                    {
+                        return Results.BadRequest(new { code = "registration_failed" });
+                    }
+                }
+
+                await signInManager.SignInAsync(user, isPersistent: false);
+
+                var optionsJson = await signInManager.MakePasskeyCreationOptionsAsync(
+                    new()
+                    {
+                        Id = user.Id.ToString(),
+                        Name = user.UserName!,
+                        DisplayName = request.DisplayName,
+                    });
+
+                return TypedResults.Content(
+                    optionsJson,
+                    contentType: "application/json");
+            });
+
+        endpoints.MapPost(
             "/Account/PasskeyAttestation",
             async (
                 HttpContext context,
@@ -168,6 +227,8 @@ public static class PasskeyEndpoints
 }
 
 public sealed record PasskeyCreationRequest(string DisplayName);
+
+public sealed record PasskeyRegistrationRequest(string DisplayName);
 
 public sealed record PasskeyAttestationRequest(
     string CredentialJson,

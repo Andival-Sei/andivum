@@ -107,6 +107,9 @@ Azure или другого конкретного поставщика для �
 4. ОС показывает Windows Hello или доступный Android passkey provider.
 5. Клиент получает короткоживущий access token и rotation-capable refresh token.
 6. Токены сохраняются только в защищённом хранилище ОС.
+7. Клиент вызывает защищённый `/api/v1/session` и открывает dashboard только
+   после подтверждения сервером; при истечении access token используется
+   refresh token с rotation.
 
 Этот вариант даёт единый безопасный протокол Windows, Android и будущему вебу.
 Прямые вызовы Windows WebAuthn API или Android Credential Manager могут быть

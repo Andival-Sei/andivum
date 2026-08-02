@@ -1,23 +1,10 @@
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Runtime.InteropServices;
 using Windows.Security.Credentials;
 
 namespace Andivum_Windows.Auth;
 
-public sealed record TokenSet(
-    [property: JsonPropertyName("access_token")]
-    string AccessToken,
-    [property: JsonPropertyName("refresh_token")]
-    string? RefreshToken,
-    [property: JsonPropertyName("token_type")]
-    string TokenType,
-    [property: JsonPropertyName("expires_in")]
-    int ExpiresIn,
-    [property: JsonPropertyName("scope")]
-    string? Scope);
-
-public sealed class TokenStore
+public sealed class TokenStore : ITokenStore
 {
     private const string Resource = "Andivum";
     private const string UserName = "current-session";

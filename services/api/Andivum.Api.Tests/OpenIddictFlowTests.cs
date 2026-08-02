@@ -1,6 +1,9 @@
 using System.Net;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
+using OpenIddict.Abstractions;
+using Andivum.Api.Identity;
 using Xunit;
 
 namespace Andivum.Api.Tests;
@@ -120,6 +123,81 @@ public sealed class OpenIddictFlowTests
         var body = await response.Content.ReadAsStringAsync();
         Assert.True(response.IsSuccessStatusCode, body);
         Assert.Contains("Continue with passkey", body);
+        Assert.Contains("Create an account with passkey", body);
+        Assert.Contains("/Account/PasskeyRegistrationStart", body);
+    }
+
+    [Fact]
+    public async Task Registered_native_client_accepts_offline_access_scope()
+    {
+        await using var factory = CreateFactory();
+        using var client = CreateHttpsClient(factory);
+
+        using var response = await client.GetAsync(
+            "/connect/authorize?client_id=andivum-windows" +
+            "&response_type=code" +
+            "&redirect_uri=andivum%3A%2F%2Fwindows%2Fauth%2Fcallback" +
+            "&scope=openid%20profile%20offline_access" +
+            "&code_challenge=challenge" +
+            "&code_challenge_method=S256");
+
+        var body = await response.Content.ReadAsStringAsync();
+        Assert.True(response.IsSuccessStatusCode, body);
+        Assert.Contains("Continue with passkey", body);
+    }
+
+    [Fact]
+    public async Task Native_client_seeder_repairs_permissions_of_an_existing_client()
+    {
+        await using var factory = CreateFactory();
+        using var client = CreateHttpsClient(factory);
+        using var scope = factory.Services.CreateScope();
+        var manager = scope.ServiceProvider.GetRequiredService<IOpenIddictApplicationManager>();
+        var registry = scope.ServiceProvider.GetRequiredService<NativeClientRegistry>();
+        var existing = await manager.FindByClientIdAsync("andivum-windows");
+        Assert.NotNull(existing);
+
+        var legacyDescriptor = new OpenIddictApplicationDescriptor
+        {
+            ClientId = "andivum-windows",
+            ClientType = OpenIddictConstants.ClientTypes.Public,
+            ConsentType = OpenIddictConstants.ConsentTypes.Explicit,
+            DisplayName = "andivum-windows",
+        };
+        legacyDescriptor.RedirectUris.Add(new Uri("andivum://windows/auth/callback"));
+        legacyDescriptor.Permissions.UnionWith(
+        [
+            OpenIddictConstants.Permissions.Endpoints.Authorization,
+            OpenIddictConstants.Permissions.Endpoints.Token,
+            OpenIddictConstants.Permissions.GrantTypes.AuthorizationCode,
+            OpenIddictConstants.Permissions.GrantTypes.RefreshToken,
+            OpenIddictConstants.Permissions.ResponseTypes.Code,
+            OpenIddictConstants.Permissions.Scopes.Profile,
+        ]);
+        await manager.UpdateAsync(existing, legacyDescriptor);
+
+        await NativeClientSeeder.SeedAsync(manager, registry);
+
+        var repaired = await manager.FindByClientIdAsync("andivum-windows");
+        Assert.NotNull(repaired);
+        Assert.True(
+            await manager.HasPermissionAsync(
+                repaired,
+                OpenIddictConstants.Permissions.Prefixes.Scope +
+                OpenIddictConstants.Scopes.OfflineAccess));
+    }
+
+    [Fact]
+    public async Task Passkey_registration_without_csrf_is_rejected()
+    {
+        await using var factory = CreateFactory();
+        using var client = CreateHttpsClient(factory);
+
+        using var response = await client.PostAsJsonAsync(
+            "/Account/PasskeyRegistrationStart",
+            new { displayName = "Personal phone" });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [Fact]
