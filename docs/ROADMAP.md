@@ -31,9 +31,9 @@
 
 ## 1.5. Managed authentication/data MVP
 
-- [ ] Создать Auth0 tenant, Native Applications и email/password connection.
-- [ ] Создать Supabase project и включить Third-party Auth для Auth0.
-- [ ] Добавить Auth0 Action с `role=authenticated` в ID token.
+- [x] Создать Auth0 tenant, Native Applications и email/password connection.
+- [x] Создать Supabase project и включить Third-party Auth для Auth0.
+- [x] Добавить Auth0 Action с `role=authenticated` в ID token.
 - [x] Подготовить конфигурацию native issuer/client IDs/callbacks для Auth0 без
       client secrets.
 - [x] Добавить миграцию `app_profiles` с RLS по Auth0 `sub` и автоматический

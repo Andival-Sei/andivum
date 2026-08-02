@@ -56,8 +56,14 @@ Android SDK 34–36.1, AVD `Medium_Phone_API_36.1`, Android Studio с JBR 21,
 
 ```powershell
 pnpm windows:build
+pnpm windows:run
 pnpm android:build
+pnpm android:build:cloud
 ```
+
+`windows:run` запускает WinUI через package-aware `dotnet run`, поэтому служебная
+регистрация Windows App SDK создаётся автоматически. Он подхватывает `.env` и
+неотслеживаемый `.env.andivum.local`, если файл существует.
 
 Windows-клиент закрепляет Windows App SDK 1.8.x. Android использует AGP 9.0.1,
 Gradle 9.1, Kotlin 2.4.0 и JDK 17+; `tools/scripts/run-android-gradle.ps1`

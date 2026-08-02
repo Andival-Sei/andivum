@@ -8,6 +8,14 @@ const migrationPath = resolve(
   root,
   "supabase/migrations/20260802143025_create_app_profiles.sql",
 );
+const securityMigrationPath = resolve(
+  root,
+  "supabase/migrations/20260802155444_revoke_auto_rls_function_execute.sql",
+);
+const performanceMigrationPath = resolve(
+  root,
+  "supabase/migrations/20260802155708_update_app_profiles_rls_initplan.sql",
+);
 
 test("app profile migration binds ownership to Auth0 subject and enables RLS", async () => {
   const sql = await readFile(migrationPath, "utf8");
@@ -27,4 +35,24 @@ test("app profile migration does not grant client access to service-role or cred
   assert.doesNotMatch(sql, /grant .*service_role/i);
   assert.doesNotMatch(sql, /password|secret|refresh[_ -]?token/i);
   assert.doesNotMatch(sql, /auth\.users/i);
+});
+
+test("automatic RLS helper is not executable by public API roles", async () => {
+  const sql = await readFile(securityMigrationPath, "utf8");
+
+  assert.match(
+    sql,
+    /revoke execute on function public\.rls_auto_enable\(\) from public, anon, authenticated/i,
+  );
+});
+
+test("app profile policies cache the Auth0 JWT lookup per query", async () => {
+  const sql = await readFile(performanceMigrationPath, "utf8");
+
+  assert.equal((sql.match(/drop policy /gi) ?? []).length, 3);
+  assert.equal((sql.match(/create policy /gi) ?? []).length, 3);
+  assert.equal(
+    (sql.match(/\(\(select auth\.jwt\(\)\)\s*->>\s*'sub'\)/gi) ?? []).length,
+    4,
+  );
 });

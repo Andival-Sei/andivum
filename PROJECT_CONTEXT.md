@@ -75,15 +75,17 @@ UI, интеграция с ОС, локальное хранение и час�
 - Не строим микросервисы до измеримой потребности.
 - Не встраиваем MCP или административный backdoor в production-приложение.
 - Auth0 и Supabase выбраны для первого облачного MVP; локальный OpenIddict и
-  PostgreSQL остаются только временным dev fallback до настройки внешних
-  проектов.
+  PostgreSQL остаются только временным dev fallback до завершения реального
+  cloud smoke-теста.
 
 ## Текущий следующий шаг
 
 Нативные login/dashboard shells для Windows и Android уже созданы и подключены
-к конфигурируемому OIDC-flow. Кодовая поддержка Auth0 + Supabase, миграция
-`app_profiles` и RLS уже подготовлены; до выдачи реальных настроек провайдеров
-локальный OpenIddict остаётся dev fallback. Следующий внешний шаг — создать
-Auth0 tenant/Native Applications и Supabase project, применить миграцию, затем
-проверить один Auth0 subject на Windows и физическом Android. После этого
-внешнего smoke начинается Tasks vertical slice.
+к конфигурируемому OIDC-flow. В dev tenant Auth0 созданы отдельные Native
+Applications Andivum Windows/Android, email/password connection, ограниченный
+Action для Supabase и включена ротация refresh-токенов. В Supabase project
+Andivum включён Auth0 Third-party Auth, применены `app_profiles` и RLS-
+миграции, а локальные публичные параметры лежат в игнорируемом
+`.env.andivum.local`. Следующий шаг — live smoke: регистрация/вход на Windows,
+затем на физическом Android и проверка одного Auth0 subject в обеих системах.
+После этого внешний smoke заканчивается и начинается Tasks vertical slice.

@@ -34,8 +34,8 @@ RLS сравнивает текущий JWT subject с владельцем ст
 
 ```sql
 to authenticated
-using ((select auth.jwt() ->> 'sub') = auth0_subject)
-with check ((select auth.jwt() ->> 'sub') = auth0_subject)
+using (((select auth.jwt()) ->> 'sub') = auth0_subject)
+with check (((select auth.jwt()) ->> 'sub') = auth0_subject)
 ```
 
 Для будущих family spaces проверяется membership, а не только строка профиля.
@@ -43,13 +43,16 @@ with check ((select auth.jwt() ->> 'sub') = auth0_subject)
 
 ## Auth0 configuration
 
-Нужно создать в Auth0 Dashboard:
+В dev tenant Auth0 уже создано:
 
-1. Native Application для Windows.
-2. Native Application для Android.
-3. Database Connection с email/password и включить её для обоих приложений.
-4. API/аудиторию, если операции позже будут идти через собственный API.
-5. Auth0 Action `onExecutePostLogin`, добавляющий в ID token literal claim:
+1. Native Application `Andivum Windows`.
+2. Native Application `Andivum Android`.
+3. Database Connection `andivum-email-password`, включённый только для этих
+   двух приложений.
+4. API/аудитория остаётся отдельным будущим шагом, если операции позже будут
+   идти через собственный API.
+5. Отдельный Action `andivum-supabase-role-claim`, добавляющий в ID token
+   literal claim:
 
    ```javascript
    exports.onExecutePostLogin = async (event, api) => {
@@ -67,13 +70,15 @@ HTTPS callback.
 
 ## Supabase configuration
 
-В Supabase Dashboard:
+В Supabase project `Andivum`:
 
-1. Создать проект.
-2. В Authentication settings добавить Third-party Auth integration для Auth0.
-3. Проверить tenant ID/region и signing algorithm Auth0.
-4. Выполнить миграции из `supabase/migrations`.
-5. Проверить RLS policy на реальном dev project.
+1. Проект создан в регионе `eu-west-1`.
+2. Включена Third-party Auth integration для Auth0 с tenant ID
+   `dev-thwdm1brs1dhe4g2` и регионом `us`.
+3. Проверен асимметричный signing algorithm Auth0 (`RS256`).
+4. Применены миграции из `supabase/migrations`.
+5. Security и performance advisors не находят предупреждений для текущей
+   схемы.
 
 Supabase client получает URL и publishable key из окружения приложения, а JWT
 Auth0 передаётся как пользовательский bearer token. Service-role key и пароль
@@ -92,21 +97,39 @@ $env:ANDIVUM_AUTH0_WINDOWS_REDIRECT_URI = "andivum://windows/auth/callback"
 $env:ANDIVUM_SUPABASE_URL = "https://<project-ref>.supabase.co"
 $env:ANDIVUM_SUPABASE_PUBLISHABLE_KEY = "<publishable-key>"
 pnpm windows:build
+pnpm windows:run
 ```
+
+`windows:build` только собирает приложение. Для запуска WinUI используйте
+`windows:run`: эта команда запускает приложение через `dotnet run` и создаёт
+необходимую служебную регистрацию Windows App SDK.
 
 Android получает эти публичные значения как Gradle properties. Пример не
 содержит и не должен содержать client secret:
 
+Если в корне есть неотслеживаемый `.env.andivum.local`, для Andivum достаточно
+выполнить:
+
+```powershell
+pnpm android:build:cloud
+```
+
+Команда сама передаст публичные cloud-значения в Gradle. Ручной вариант ниже
+нужен только для другой конфигурации:
+
 ```powershell
 pnpm android:build -- `
-  -PandivumAuthProvider=auth0-supabase `
-  -PandivumAuth0Domain=dev-example.eu.auth0.com `
-  -PandivumAuthClientId=<android-client-id> `
-  -PandivumAuthRedirectUri=andivum://android/auth/callback `
-  -PandivumSupabaseUrl=https://<project-ref>.supabase.co `
-  -PandivumSupabasePublishableKey=<publishable-key> `
+  "-PandivumAuthProvider=auth0-supabase" `
+  "-PandivumAuth0Domain=dev-example.eu.auth0.com" `
+  "-PandivumAuthClientId=<android-client-id>" `
+  "-PandivumAuthRedirectUri=andivum://android/auth/callback" `
+  "-PandivumSupabaseUrl=https://<project-ref>.supabase.co" `
+  "-PandivumSupabasePublishableKey=<publishable-key>" `
   assembleDebug
 ```
+
+Кавычки вокруг каждого `-P...` обязательны: в Windows PowerShell значения с
+`.us.auth0.com` и `://` иначе могут разделиться на несколько аргументов Gradle.
 
 Если эти параметры не переданы, debug Android использует local OpenIddict и
 текущий `andivumApiBaseUrl`.
