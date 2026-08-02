@@ -1,4 +1,5 @@
 param(
+    [string] $ApiBaseUrl,
     [Parameter(ValueFromRemainingArguments = $true)]
     [string[]] $GradleArguments
 )
@@ -19,5 +20,15 @@ if (-not $javaHome) {
 $env:JAVA_HOME = $javaHome
 $gradleWrapper = Join-Path $repoRoot "apps/android/gradlew.bat"
 Set-Location (Join-Path $repoRoot "apps/android")
-& $gradleWrapper @GradleArguments
+$firstArgumentIsGradleTask = $ApiBaseUrl -and
+    $ApiBaseUrl -notmatch '^[a-z][a-z0-9+.-]*://'
+$effectiveGradleArguments = @($GradleArguments)
+if ($firstArgumentIsGradleTask) {
+    $effectiveGradleArguments = @($ApiBaseUrl) + $effectiveGradleArguments
+    $ApiBaseUrl = $null
+}
+if ($ApiBaseUrl) {
+    $effectiveGradleArguments += "-PandivumApiBaseUrl=$ApiBaseUrl"
+}
+& $gradleWrapper @effectiveGradleArguments
 exit $LASTEXITCODE

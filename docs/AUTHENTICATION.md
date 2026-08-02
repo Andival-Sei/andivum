@@ -48,6 +48,24 @@ Android Emulator обращается к машине разработчика �
 сертификату на эмуляторе будет добавлено в отдельном device-smoke шаге до
 проверки реального обмена токенами.
 
+Для физического Android-устройства debug API URL можно переопределить через
+Gradle property. Например, при USB debugging и `adb reverse`:
+
+```powershell
+adb reverse tcp:7240 tcp:7240
+pnpm android:build -- -PandivumApiBaseUrl=https://localhost:7240
+```
+
+Локальный HTTPS-сертификат всё равно должен быть доверен браузером и debug
+клиентом; это отдельная часть device-smoke проверки.
+
+На 2026-08-02 физический Pixel 7 Pro успешно определяется по USB, APK
+устанавливается и UI запускается. `adb reverse` работает, но AppAuth discovery
+останавливается на `Trust anchor for certification path not found`: устройство
+ещё не доверяет локальному dev-сертификату. Trust-all обход для приложения не
+используется; следующий вариант — установить только локальный CA на debug-
+устройство или проверить flow на staging HTTPS.
+
 Для остановки инфраструктуры:
 
 ```powershell

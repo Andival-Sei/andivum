@@ -13,7 +13,10 @@ OIDC + PKCE and passkey security invariants.
 - [x] Gate `/connect/authorize` on at least one stored passkey.
 - [x] Add registration controls to the auth surface.
 - [ ] Add localized status strings to the auth surface.
-- [ ] Run API tests, Android/Windows builds, and available device smoke checks.
+- [x] Run API tests and Android/Windows builds; install and launch the debug APK
+      on the connected Pixel 7 Pro without an app crash.
+- [ ] Complete Android passkey/token device smoke after the device trusts the
+      local HTTPS certificate or a staging HTTPS endpoint is available.
 - [x] Update authentication docs and roadmap with the exact completed/deferred
       behavior.
 

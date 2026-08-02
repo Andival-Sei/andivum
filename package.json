@@ -16,6 +16,7 @@
     "api:test": "node tools/scripts/run-api-tests.mjs",
     "windows:build": "dotnet build apps/windows/Andivum.Windows.csproj -p:Platform=x64",
     "android:build": "powershell -NoProfile -ExecutionPolicy Bypass -File tools/scripts/run-android-gradle.ps1 assembleDebug",
+    "android:build:physical": "powershell -NoProfile -ExecutionPolicy Bypass -File tools/scripts/run-android-gradle.ps1 -ApiBaseUrl https://localhost:7240 assembleDebug",
     "dev:infra": "docker compose --env-file .env -f infra/compose/docker-compose.yml up -d --wait",
     "dev:api": "node tools/scripts/run-api.mjs"
   }
