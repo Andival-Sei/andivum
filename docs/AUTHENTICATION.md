@@ -43,6 +43,12 @@ with check ((select auth.uid()) = user_id)
 В Supabase project `Andivum` включены email/password Auth и ротация refresh
 токенов. Подтверждение email остаётся включённым для cloud-проекта.
 
+Для cloud-проекта поле `Site URL` в Supabase Auth должно указывать на адрес
+Andivum, а не на URL другого приложения. Если native-клиент не передаёт
+отдельный `redirectTo`, Supabase использует именно `Site URL` после перехода
+по письму подтверждения. Локальный адрес предыдущего приложения здесь
+запрещён.
+
 Применяемые миграции находятся в `supabase/migrations`. Security и performance
 advisors запускаются после изменения схемы. Supabase client получает URL и
 publishable key из окружения приложения. Service-role key и пароль PostgreSQL в
@@ -67,6 +73,11 @@ pnpm windows:run
 `windows:run`: эта команда запускает приложение через `dotnet run` и создаёт
 необходимую служебную регистрацию Windows App SDK, а также передаёт текущую
 Supabase-конфигурацию в приложение.
+
+У упакованного WinUI бывают два варианта доставки аргументов запуска: через
+`LaunchActivatedEventArgs` или через обычную командную строку процесса. Клиент
+читает оба варианта, поэтому cloud-запуск не должен незаметно откатываться к
+локальному `localhost:54321`.
 
 Android получает эти публичные значения как Gradle properties. Если в корне
 есть неотслеживаемый `.env.andivum.local`, достаточно выполнить:

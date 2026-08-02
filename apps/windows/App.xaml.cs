@@ -55,7 +55,10 @@ public partial class App : Application
     {
         LaunchAuthConfiguration = AuthConfiguration.FromLaunchArguments(
             args.Arguments,
-            Environment.GetEnvironmentVariable);
+            Environment.GetEnvironmentVariable)
+            ?? AuthConfiguration.FromProcessArguments(
+                Environment.GetCommandLineArgs(),
+                Environment.GetEnvironmentVariable);
         Window = new MainWindow();
         DispatcherQueue = Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread();
         Window.Activate();

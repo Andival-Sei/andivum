@@ -52,6 +52,24 @@ public sealed class AuthConfigurationTests
     }
 
     [Fact]
+    public void Packaged_process_arguments_are_available_when_activation_arguments_are_empty()
+    {
+        var configuration = AuthConfiguration.FromProcessArguments(
+            new[]
+            {
+                "Andivum.Windows.exe",
+                "--andivum-auth-provider=supabase",
+                "--andivum-supabase-url=https://example.supabase.co",
+                "--andivum-supabase-publishable-key=publishable-key",
+            },
+            _ => null);
+
+        Assert.NotNull(configuration);
+        Assert.Equal(AuthProvider.Supabase, configuration.Provider);
+        Assert.Equal("https://example.supabase.co", configuration.SupabaseUrl);
+    }
+
+    [Fact]
     public void Auth0_configuration_is_rejected_after_the_migration()
     {
         var values = new Dictionary<string, string?>

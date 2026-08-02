@@ -93,6 +93,18 @@ public sealed record AuthConfiguration(
                 : getEnvironmentVariable(key));
     }
 
+    public static AuthConfiguration? FromProcessArguments(
+        IReadOnlyList<string> arguments,
+        Func<string, string?> getEnvironmentVariable)
+    {
+        ArgumentNullException.ThrowIfNull(arguments);
+        ArgumentNullException.ThrowIfNull(getEnvironmentVariable);
+
+        return FromLaunchArguments(
+            string.Join(' ', arguments.Skip(1)),
+            getEnvironmentVariable);
+    }
+
     private static string NormalizeSupabaseUrl(string value, string key)
     {
         if (!Uri.TryCreate(value.Trim(), UriKind.Absolute, out var uri) ||
