@@ -11,6 +11,7 @@
 - [ ] Добавить CI для Windows, Android, backend и контрактов.
 - [x] Добавить локальную PostgreSQL-инфраструктуру без production-секретов.
 - [x] Зафиксировать нативную локализацию Windows/Android и policy fallback.
+- [x] Выбрать Auth0 + Supabase как managed backend первого облачного MVP.
 
 ## 1. Authentication vertical slice
 
@@ -27,6 +28,24 @@
 - [ ] Добавить нативные `en-US`/`ru-RU` ресурсы, language settings и `pnpm i18n:check`.
 - [ ] Добавить secure token storage и logout-all-devices.
 - [ ] Проверить один аккаунт на Windows и Android.
+
+## 1.5. Managed authentication/data MVP
+
+- [ ] Создать Auth0 tenant, Native Applications и email/password connection.
+- [ ] Создать Supabase project и включить Third-party Auth для Auth0.
+- [ ] Добавить Auth0 Action с `role=authenticated` в ID token.
+- [x] Подготовить конфигурацию native issuer/client IDs/callbacks для Auth0 без
+      client secrets.
+- [x] Добавить миграцию `app_profiles` с RLS по Auth0 `sub` и автоматический
+      bootstrap профиля.
+- [x] Подготовить direct Supabase profile/session flow, mocked tests и SQL RLS
+      проверку.
+- [x] Оставить OpenIddict только как явный local-dev fallback до настройки
+      внешних проектов.
+- [ ] Проверить direct Supabase profile/session flow на Windows и физическом
+      Android с реальным Auth0/Supabase project.
+- [ ] Решить отдельным ADR, какие Tasks/Finance операции требуют RPC, Edge
+      Functions или тонкого API.
 
 ## 2. Tasks vertical slice
 

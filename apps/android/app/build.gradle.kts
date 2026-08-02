@@ -9,6 +9,34 @@ val debugApiBaseUrl = providers.gradleProperty("andivumApiBaseUrl")
     .replace("\\", "\\\\")
     .replace("\"", "\\\"")
 
+fun buildConfigLiteral(value: String): String = value
+    .replace("\\", "\\\\")
+    .replace("\"", "\\\"")
+
+val debugAuthProvider = providers.gradleProperty("andivumAuthProvider")
+    .orElse("local")
+    .get()
+val releaseAuthProvider = providers.gradleProperty("andivumAuthProvider")
+    .orElse("auth0-supabase")
+    .get()
+val debugAuthClientId = providers.gradleProperty("andivumAuthClientId")
+    .orElse("andivum-android")
+    .get()
+val debugAuthRedirectUri = providers.gradleProperty("andivumAuthRedirectUri")
+    .orElse("andivum://android/auth/callback")
+    .get()
+val configuredAuthClientId = providers.gradleProperty("andivumAuthClientId")
+    .orElse("")
+    .get()
+val configuredAuthRedirectUri = providers.gradleProperty("andivumAuthRedirectUri")
+    .orElse("")
+    .get()
+val auth0Domain = providers.gradleProperty("andivumAuth0Domain").orElse("").get()
+val supabaseUrl = providers.gradleProperty("andivumSupabaseUrl").orElse("").get()
+val supabasePublishableKey = providers.gradleProperty("andivumSupabasePublishableKey")
+    .orElse("")
+    .get()
+
 android {
     namespace = "io.github.andivalsei.andivum"
     compileSdk = 36
@@ -25,10 +53,24 @@ android {
     buildTypes {
         debug {
             buildConfigField("String", "API_BASE_URL", "\"$debugApiBaseUrl\"")
+            buildConfigField("String", "AUTH_PROVIDER", "\"${buildConfigLiteral(debugAuthProvider)}\"")
+            buildConfigField("String", "AUTH_ISSUER", "\"$debugApiBaseUrl\"")
+            buildConfigField("String", "AUTH_CLIENT_ID", "\"${buildConfigLiteral(debugAuthClientId)}\"")
+            buildConfigField("String", "AUTH_REDIRECT_URI", "\"${buildConfigLiteral(debugAuthRedirectUri)}\"")
+            buildConfigField("String", "AUTH0_DOMAIN", "\"${buildConfigLiteral(auth0Domain)}\"")
+            buildConfigField("String", "SUPABASE_URL", "\"${buildConfigLiteral(supabaseUrl)}\"")
+            buildConfigField("String", "SUPABASE_PUBLISHABLE_KEY", "\"${buildConfigLiteral(supabasePublishableKey)}\"")
         }
         release {
             isMinifyEnabled = false
             buildConfigField("String", "API_BASE_URL", "\"https://api.andivum.example\"")
+            buildConfigField("String", "AUTH_PROVIDER", "\"${buildConfigLiteral(releaseAuthProvider)}\"")
+            buildConfigField("String", "AUTH_ISSUER", "\"\"")
+            buildConfigField("String", "AUTH_CLIENT_ID", "\"${buildConfigLiteral(configuredAuthClientId)}\"")
+            buildConfigField("String", "AUTH_REDIRECT_URI", "\"${buildConfigLiteral(configuredAuthRedirectUri)}\"")
+            buildConfigField("String", "AUTH0_DOMAIN", "\"${buildConfigLiteral(auth0Domain)}\"")
+            buildConfigField("String", "SUPABASE_URL", "\"${buildConfigLiteral(supabaseUrl)}\"")
+            buildConfigField("String", "SUPABASE_PUBLISHABLE_KEY", "\"${buildConfigLiteral(supabasePublishableKey)}\"")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",

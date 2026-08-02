@@ -30,4 +30,5 @@
   <data name="AuthStatusChecking"><value>Проверяем защищённую сессию…</value></data>
   <data name="AuthStatusVerified"><value>Сервер подтвердил ваш аккаунт.</value></data>
   <data name="AuthStatusSessionUnavailable"><value>Сервер не смог подтвердить эту сессию. Войдите снова, когда будете онлайн.</value></data>
+  <data name="AuthStatusSettingsUnavailable"><value>Настройки аккаунта подключим после настройки облачной авторизации.</value></data>
 </root>

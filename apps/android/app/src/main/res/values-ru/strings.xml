@@ -18,6 +18,7 @@
     <string name="auth_signed_in">Вход выполнен</string>
     <string name="auth_session_verified">Сервер подтвердил ваш аккаунт.</string>
     <string name="auth_session_unavailable">Сервер не смог подтвердить эту сессию. Войдите снова, когда будете онлайн.</string>
+    <string name="auth_settings_unavailable">Настройки аккаунта подключим после настройки облачной авторизации.</string>
     <string name="dashboard_overview">Обзор</string>
     <string name="dashboard_eyebrow">Ваше пространство готово</string>
     <string name="dashboard_title">Освободите место для важного сегодня.</string>

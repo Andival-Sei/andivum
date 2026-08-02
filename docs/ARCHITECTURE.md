@@ -16,9 +16,12 @@
 
 ```text
 Native Windows app (C#/WinUI 3) ─┐
-                                 ├─ HTTPS REST/OpenAPI ─ Modular backend ─ PostgreSQL
-Native Android app (Kotlin) ─────┘                         │
-                                                          └─ Integration adapters
+                                 ├─ OIDC/PKCE ─ Auth0
+Native Android app (Kotlin) ─────┤
+                                 └─ Supabase Data API/Storage + RLS
+                                      │
+                                      └─ SQL/RPC/Edge Functions
+                                         (позже тонкий API при необходимости)
 ```
 
 Планируемая структура monorepo:
@@ -82,59 +85,59 @@ domain/use-case слой тестировался без UI.
 Используются stable Android SDK и библиотеки. Preview-зависимости в production
 ветку не добавляются без ADR.
 
-### Backend
+### Managed backend первого MVP
 
-- ASP.NET Core 10 на .NET 10 LTS;
-- modular monolith с вертикальными модулями;
-- PostgreSQL;
-- EF Core 10 + Npgsql;
-- ASP.NET Core Identity;
-- OpenIddict для стандартных OIDC/OAuth 2.0 flows;
-- OpenAPI как источник контрактов клиентов;
-- OpenTelemetry для logs, metrics и traces;
-- контейнеризованный локальный запуск PostgreSQL и API.
+- Auth0 Database Connection и Universal Login для identity;
+- Supabase PostgreSQL;
+- Supabase Data API, Storage и Row Level Security;
+- Supabase SQL/RPC и Edge Functions только для операций, которые нельзя
+  безопасно отдать прямому клиентскому CRUD;
+- OpenAPI остаётся контрактом будущего API и server-side use cases;
+- OpenTelemetry появится в Edge Functions/тонком API, когда эти surfaces будут
+  добавлены.
 
-Облачный провайдер пока не выбран. Архитектура не должна требовать Supabase,
-Azure или другого конкретного поставщика для локальной разработки.
+ASP.NET Core 10 + EF Core/Npgsql и локальный OpenIddict сохраняются в репозитории
+как временный dev fallback и задел будущего тонкого API. Они не являются
+обязательной production-зависимостью первого облачного MVP.
 
 ## 4. Аутентификация и passkeys
 
-Начальный поток нативных приложений:
+Начальный облачный поток нативных приложений:
 
-1. Приложение открывает системную authentication session, а не embedded WebView.
-2. Backend выполняет OIDC Authorization Code flow с PKCE.
-3. Страница auth-домена использует ASP.NET Core Identity для email/password и
-   optional passkeys/WebAuthn.
-4. Пароль вводится только в этой server-rendered странице; native-клиент не
-   использует password grant и не видит пароль.
-5. При passkey-сценарии ОС показывает Windows Hello или доступный Android
-   passkey provider.
-6. Клиент получает короткоживущий access token и rotation-capable refresh token.
-7. Токены сохраняются только в защищённом хранилище ОС.
-8. Клиент вызывает защищённый `/api/v1/session` и открывает dashboard только
-   после подтверждения сервером; при истечении access token используется
-   refresh token с rotation.
-
-Этот вариант даёт единый безопасный протокол Windows, Android и будущему вебу.
-Прямые вызовы Windows WebAuthn API или Android Credential Manager могут быть
-добавлены позже поверх тех же серверных ceremony endpoints, если системный
-browser flow окажется недостаточно нативным.
+1. Приложение открывает Auth0 Universal Login в системном браузере, а не
+   embedded WebView.
+2. Auth0 выполняет email/password registration/sign-in и OIDC Authorization Code
+   flow с PKCE `S256`.
+3. Пароль вводится только в Auth0 browser surface; native-клиент его не видит
+   и не использует password grant.
+4. Auth0 возвращает короткоживущий access token, ID token и rotation-capable
+   refresh token на точный native callback.
+5. Токены сохраняются только в защищённом хранилище ОС.
+6. Supabase Third-party Auth проверяет JWT Auth0; Auth0 Action добавляет
+   `role=authenticated` в ID token, который используется для Data API/Storage.
+7. RLS проверяет immutable Auth0 `sub` из `auth.jwt()`, а не email и не
+   client-provided owner id.
+8. Dashboard открывается только после успешной проверки/создания Supabase
+   `app_profiles`; при истечении access token используется refresh rotation.
 
 До реализации production-auth необходимо:
 
-- закрепить HTTPS-домен;
-- записать `passkeyRelyingPartyId` в `config/product.json`;
-- настроить строгую проверку origin и host headers;
+- создать Auth0 tenant, Native Applications и Database Connection;
+- создать Supabase project и Third-party Auth integration;
+- закрепить HTTPS custom domain для Auth0 passkeys;
+- записать provider configuration через secrets/environment;
+- настроить strict redirect/issuer/audience policy;
 - определить account recovery;
 - добавить подтверждение email и безопасное восстановление пароля;
 - ограничить число и длину имён passkeys;
 - спроектировать revocation, logout-all-devices и refresh-token rotation.
 
-Текущий локальный контракт и команды запуска описаны в
+Текущий локальный fallback и команды запуска описаны в
 [`docs/AUTHENTICATION.md`](AUTHENTICATION.md), а стабильная часть API — в
 [`contracts/openapi/andivum-auth.yaml`](../contracts/openapi/andivum-auth.yaml).
 OIDC discovery остаётся источником актуальных endpoint metadata. Production не
-может стартовать с development ephemeral keys или без явных сертификатов.
+может стартовать без явного внешнего issuer, RLS и безопасной конфигурации
+provider keys.
 
 ## 5. Модули
 
@@ -170,9 +173,22 @@ OIDC discovery остаётся источником актуальных endpoi
 
 ## 7. Данные и синхронизация
 
-Сервер — источник истины для межустройственного состояния. На первом этапе
+Supabase Postgres — источник истины для облачного состояния. На первом этапе
 клиенты используют локальную SQLite-базу как cache и очередь локальных команд,
-но не обещают полное редактирование всех сущностей без сети.
+но не обещают полное редактирование всех сущностей без сети. Прямой клиентский
+доступ разрешён только через publishable key и RLS; операции с денежными
+инвариантами будут RPC/Edge Functions или будущим API.
+
+Прикладной профиль связывается с Auth0 так:
+
+```text
+Auth0 JWT sub (text) ──RLS──> public.app_profiles.auth0_subject
+                                  │
+                                  └──> Tasks/Finance rows and future spaces
+```
+
+Пароли и passkey credentials в Supabase не дублируются. Email может быть
+отображаемым атрибутом, но не authorization key.
 
 Контракт синхронизации должен поддерживать:
 
@@ -233,10 +249,11 @@ pnpm dev:android
 ```
 
 Developer CLI должен иметь `--json`, стабильные exit codes и безопасные операции
-с test/demo data. Если появится MCP server, он вызывает CLI/application services
-и работает только в development-профиле. Встраивать MCP в production приложение
-не нужно: это увеличит поверхность атаки и не даст преимуществ по сравнению с
-отдельным dev-tool.
+с test/demo data. Supabase migrations выполняются через Supabase CLI. Если
+появится MCP server, он вызывает CLI/application services и работает только в
+development-профиле. Встраивать MCP в production приложение не нужно: это
+увеличит поверхность атаки и не даст преимуществ по сравнению с отдельным
+dev-tool.
 
 ## 11. Проверенные источники
 
@@ -245,6 +262,9 @@ Developer CLI должен иметь `--json`, стабильные exit codes 
 - [Windows WebAuthn API](https://learn.microsoft.com/en-us/windows/win32/webauthn/-webauthn-portal)
 - [ASP.NET Core Identity passkeys](https://learn.microsoft.com/en-us/aspnet/core/security/authentication/passkeys/?view=aspnetcore-10.0)
 - [Android Credential Manager prerequisites](https://developer.android.com/identity/credential-manager/prerequisites)
+- [Auth0 native applications](https://auth0.com/docs/get-started/auth0-overview/create-applications/native-apps)
+- [Supabase Auth0 third-party authentication](https://supabase.com/docs/guides/auth/third-party/auth0)
+- [Supabase Row Level Security](https://supabase.com/docs/guides/database/postgres/row-level-security)
 - [Jetpack Compose architecture](https://developer.android.com/develop/ui/compose/architecture)
 
 Источники проверены 2026-08-02. Точные версии зависимостей всё равно фиксируются

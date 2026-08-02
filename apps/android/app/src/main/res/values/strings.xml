@@ -18,6 +18,7 @@
     <string name="auth_signed_in">Signed in</string>
     <string name="auth_session_verified">Server verified your account.</string>
     <string name="auth_session_unavailable">The server could not verify this session. Please sign in again when you are online.</string>
+    <string name="auth_settings_unavailable">Account settings will be connected after the cloud identity setup.</string>
     <string name="dashboard_overview">Overview</string>
     <string name="dashboard_eyebrow">Your space is ready</string>
     <string name="dashboard_title">Make room for what matters today.</string>

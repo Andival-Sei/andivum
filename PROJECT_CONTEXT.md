@@ -10,8 +10,8 @@ Android. Первый пользователь — владелец проект
 ## Первый продуктовый срез
 
 1. Экран входа и регистрации.
-2. Регистрация и вход по email + паролю через системный браузер; passkey можно
-   подключить дополнительно в настройках аккаунта.
+2. Регистрация и вход по email + паролю через Auth0 и системный браузер;
+   passkey можно подключить дополнительно в настройках аккаунта.
 3. Базовый модуль умных задач.
 4. Базовый модуль личных финансов.
 5. Синхронизация данных между устройствами одного пользователя.
@@ -25,14 +25,16 @@ Android. Первый пользователь — владелец проект
 
 - Windows: C# 14, .NET 10 LTS, WinUI 3, Windows App SDK stable.
 - Android: Kotlin, Jetpack Compose, Material 3, AndroidX.
-- Backend: ASP.NET Core 10 modular monolith.
-- Данные сервера: PostgreSQL + EF Core/Npgsql.
+- Identity: Auth0 Database Connection + OIDC Authorization Code with PKCE.
+- Данные первого облачного MVP: Supabase PostgreSQL, Data API, Storage и RLS.
+- Server-side code: Supabase SQL/RPC/Edge Functions по мере необходимости;
+  будущий тонкий ASP.NET Core API допускается отдельным ADR.
 - Локальные данные: SQLite; Room на Android, Microsoft.Data.Sqlite/EF Core на
   Windows.
 - API: HTTPS REST + OpenAPI, generated native clients.
-- Auth: ASP.NET Core Identity passwords/passkeys + OIDC/OAuth 2.0 Authorization
-  Code with PKCE; OpenIddict как протокольный сервер. Пароль вводится только на
-  server-rendered auth surface, не в native-клиенте.
+- Auth: Auth0 email/password + hosted Universal Login + OIDC/OAuth 2.0
+  Authorization Code with PKCE. Пароль вводится только в Auth0 browser surface,
+  не в native-клиенте.
 - Наблюдаемость: OpenTelemetry.
 - Репозиторий: monorepo, единый command facade через `pnpm`.
 
@@ -41,7 +43,7 @@ Android. Первый пользователь — владелец проект
 
 ## Что является общим
 
-- серверные бизнес-инварианты;
+- серверные бизнес-инварианты в Supabase RLS/RPC/Edge Functions или будущем API;
 - OpenAPI-контракты и генерируемые модели клиентов;
 - схемы событий и синхронизации;
 - product configuration;
@@ -54,12 +56,16 @@ UI, интеграция с ОС, локальное хранение и час�
 
 ## Архитектурная форма
 
-- Один modular-monolith backend на старте.
+- На первом облачном срезе — managed backend Supabase без собственного
+  постоянно работающего сервера; сложная логика позже выносится в Edge Functions
+  или тонкий modular-monolith API.
 - Вертикальные модули: Identity, Tasks, Finance, Integrations, Automation.
-- Каждый модуль владеет своими данными и публичными контрактами.
+- Каждый модуль владеет своими таблицами, RLS-политиками и публичными
+  контрактами.
 - Клиенты повторяют модульные границы внутри своих платформенных проектов.
-- Межмодульные связи выражаются стабильными идентификаторами и событиями, а не
-  прямым доступом к чужим таблицам.
+- На прямом MVP-клиенте межмодульный direct table access ограничен RLS; сложные
+  связи выражаются RPC/Edge Functions и стабильными идентификаторами. Полный
+  event-driven flow появится вместе с server-side orchestration.
 
 ## Важные ограничения
 
@@ -68,15 +74,16 @@ UI, интеграция с ОС, локальное хранение и час�
 - Display name изменяем, опубликованные package IDs и passkey RP ID — нет.
 - Не строим микросервисы до измеримой потребности.
 - Не встраиваем MCP или административный backdoor в production-приложение.
-- Не выбираем облачного провайдера до появления работающего локального vertical
-  slice.
+- Auth0 и Supabase выбраны для первого облачного MVP; локальный OpenIddict и
+  PostgreSQL остаются только временным dev fallback до настройки внешних
+  проектов.
 
 ## Текущий следующий шаг
 
 Нативные login/dashboard shells для Windows и Android уже созданы и подключены
-к OIDC-flow. Защищённый `GET /api/v1/session`, обновление access/refresh
-токенов и стабильный `userId` уже подключены к обоим клиентам; физический
-Android smoke подтверждает серверную проверку. Следующая цель authentication
-slice — logout, account recovery и ручной Windows/Android smoke одного аккаунта;
-email/password registration/sign-in и optional passkey settings уже собраны.
-После этого начинается Tasks vertical slice.
+к конфигурируемому OIDC-flow. Кодовая поддержка Auth0 + Supabase, миграция
+`app_profiles` и RLS уже подготовлены; до выдачи реальных настроек провайдеров
+локальный OpenIddict остаётся dev fallback. Следующий внешний шаг — создать
+Auth0 tenant/Native Applications и Supabase project, применить миграцию, затем
+проверить один Auth0 subject на Windows и физическом Android. После этого
+внешнего smoke начинается Tasks vertical slice.

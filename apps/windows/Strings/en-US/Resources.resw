@@ -30,4 +30,5 @@
   <data name="AuthStatusChecking"><value>Checking your secure session…</value></data>
   <data name="AuthStatusVerified"><value>Your account is verified by the server.</value></data>
   <data name="AuthStatusSessionUnavailable"><value>The server could not verify this session. Please sign in again when you are online.</value></data>
+  <data name="AuthStatusSettingsUnavailable"><value>Account settings will be connected after the cloud identity setup.</value></data>
 </root>

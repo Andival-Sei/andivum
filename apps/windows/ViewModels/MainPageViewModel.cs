@@ -100,8 +100,14 @@ public partial class MainPageViewModel : ObservableObject
     [RelayCommand]
     private async Task OpenAccountSettingsAsync()
     {
+        if (authClient.Configuration.UsesSupabase)
+        {
+            SessionStatus = UiStrings.Get("AuthStatusSettingsUnavailable");
+            return;
+        }
+
         if (!await Launcher.LaunchUriAsync(
-                new Uri($"{WindowsAuthClient.ApiBaseUrl}/Account/Settings")))
+                new Uri($"{authClient.Configuration.Issuer.TrimEnd('/')}/Account/Settings")))
         {
             SessionStatus = UiStrings.Get("AuthStatusSessionUnavailable");
         }

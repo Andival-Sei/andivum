@@ -168,10 +168,17 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun openAccountSettings() {
+        if (authManager.authConfiguration.usesSupabase) {
+            uiState = uiState.copy(
+                message = getString(R.string.auth_settings_unavailable),
+            )
+            return
+        }
+
         startActivity(
             Intent(
                 Intent.ACTION_VIEW,
-                Uri.parse("${BuildConfig.API_BASE_URL}/Account/Settings"),
+                Uri.parse("${authManager.authConfiguration.issuer}/Account/Settings"),
             ),
         )
     }

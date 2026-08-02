@@ -13,7 +13,8 @@
 | [0009](adr/0009-authentication-slice.md)         | Первый authentication vertical slice    | Принято |
 | [0010](adr/0010-passwordless-account-bootstrap.md) | Passwordless account bootstrap без почты | Заменён 0012 |
 | [0011](adr/0011-protected-native-session.md)     | Проверка и обновление native-сессии     | Принято |
-| [0012](adr/0012-email-password-authentication.md) | Email/password через OIDC browser auth | Принято |
+| [0012](adr/0012-email-password-authentication.md) | Email/password через OIDC browser auth | Заменён 0013 |
+| [0013](adr/0013-auth0-supabase-managed-mvp.md) | Auth0 + Supabase для облачного MVP | Принято |
 
 ## Открытые решения
 

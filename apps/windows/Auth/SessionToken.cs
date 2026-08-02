@@ -23,4 +23,6 @@ public sealed record TokenSet(
     [property: JsonPropertyName("scope")]
     string? Scope,
     [property: JsonPropertyName("issued_at")]
-    DateTimeOffset IssuedAt = default);
+    DateTimeOffset IssuedAt = default,
+    [property: JsonPropertyName("id_token")]
+    string? IdToken = null);

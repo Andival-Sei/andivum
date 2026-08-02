@@ -18,11 +18,23 @@ class AuthManager(context: Context) {
     }
 
     private val appContext = context.applicationContext
-    private val issuer = BuildConfig.API_BASE_URL
+    private val configuration = AuthConfiguration.fromBuildConfig()
+    private val issuer = configuration.issuer
     private val authorizationService = AuthorizationService(appContext)
     private val stateStore = SecureAuthStateStore(appContext)
     private val sessionApiClient = SessionApiClient(issuer)
+    private val supabaseProfileClient = if (configuration.usesSupabase) {
+        SupabaseProfileClient(
+            configuration.supabaseUrl!!,
+            configuration.supabasePublishableKey!!,
+        )
+    } else {
+        null
+    }
     private var state = stateStore.read() ?: AuthState()
+
+    val authConfiguration: AuthConfiguration
+        get() = configuration
 
     fun startSignIn(onReady: (Intent) -> Unit, onError: (String) -> Unit) {
         AuthorizationServiceConfiguration.fetchFromIssuer(Uri.parse(issuer)) { configuration, exception ->
@@ -33,9 +45,9 @@ class AuthManager(context: Context) {
 
             val request = AuthorizationRequest.Builder(
                 configuration,
-                clientId,
+                this@AuthManager.configuration.clientId,
                 ResponseTypeValues.CODE,
-                Uri.parse(redirectUri),
+                Uri.parse(this@AuthManager.configuration.redirectUri),
             )
                 .setScope("openid profile offline_access")
                 .setCodeVerifier(Pkce.createVerifier())
@@ -88,7 +100,12 @@ class AuthManager(context: Context) {
     ) {
         Thread {
             try {
-                onComplete(Result.success(sessionApiClient.getCurrentSession(accessToken)))
+                val session = if (configuration.usesSupabase) {
+                    supabaseProfileClient!!.getCurrentSession(state.idToken ?: "")
+                } else {
+                    sessionApiClient.getCurrentSession(accessToken)
+                }
+                onComplete(Result.success(session))
             } catch (exception: SessionUnauthorizedException) {
                 refreshAfterUnauthorized(onComplete)
             } catch (exception: Exception) {

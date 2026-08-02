@@ -138,6 +138,9 @@ public sealed class ProtectedSessionClient
             RefreshToken = string.IsNullOrWhiteSpace(refreshed.RefreshToken)
                 ? current.RefreshToken
                 : refreshed.RefreshToken,
+            IdToken = string.IsNullOrWhiteSpace(refreshed.IdToken)
+                ? current.IdToken
+                : refreshed.IdToken,
             IssuedAt = clock(),
         };
         tokenStore.Save(token);

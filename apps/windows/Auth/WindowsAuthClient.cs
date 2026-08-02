@@ -15,24 +15,36 @@ public sealed class WindowsAuthClient
     private readonly HttpClient httpClient;
     private readonly ITokenStore tokenStore;
     private readonly Func<DateTimeOffset> clock;
+    private readonly AuthConfiguration configuration;
     private PendingAuthorization? pendingAuthorization;
 
     public WindowsAuthClient()
-        : this(new HttpClient(), new TokenStore())
+        : this(
+            new HttpClient(),
+            new TokenStore(),
+            authConfiguration: AuthConfiguration.FromEnvironment(
+                "windows",
+                Environment.GetEnvironmentVariable))
     {
     }
 
     public WindowsAuthClient(
         HttpClient httpClient,
         ITokenStore tokenStore,
-        Func<DateTimeOffset>? clock = null)
+        Func<DateTimeOffset>? clock = null,
+        AuthConfiguration? authConfiguration = null)
     {
         this.httpClient = httpClient;
         this.tokenStore = tokenStore;
         this.clock = clock ?? (() => DateTimeOffset.UtcNow);
+        configuration = authConfiguration ?? AuthConfiguration.FromEnvironment(
+            "windows",
+            Environment.GetEnvironmentVariable);
     }
 
     public TokenSet? CurrentSession => tokenStore.Read();
+
+    public AuthConfiguration Configuration => configuration;
 
     public async Task BeginSignInAsync()
     {
@@ -46,9 +58,9 @@ public sealed class WindowsAuthClient
 
         var authorizeUrl = string.Join("&", new Dictionary<string, string>
         {
-            ["client_id"] = ClientId,
+            ["client_id"] = configuration.ClientId,
             ["response_type"] = "code",
-            ["redirect_uri"] = RedirectUri,
+            ["redirect_uri"] = configuration.RedirectUri,
             ["scope"] = "openid profile offline_access",
             ["state"] = state,
             ["code_challenge"] = Pkce.CreateChallenge(verifier),
@@ -65,9 +77,10 @@ public sealed class WindowsAuthClient
 
     public async Task<bool> HandleCallbackAsync(Uri callbackUri)
     {
-        if (callbackUri.Scheme != "andivum" ||
-            callbackUri.Host != "windows" ||
-            callbackUri.AbsolutePath != "/auth/callback")
+        var redirectUri = new Uri(configuration.RedirectUri);
+        if (callbackUri.Scheme != redirectUri.Scheme ||
+            callbackUri.Host != redirectUri.Host ||
+            callbackUri.AbsolutePath != redirectUri.AbsolutePath)
         {
             return false;
         }
@@ -90,10 +103,10 @@ public sealed class WindowsAuthClient
             pendingAuthorization.TokenEndpoint,
             new FormUrlEncodedContent(new Dictionary<string, string>
             {
-                ["client_id"] = ClientId,
+                ["client_id"] = configuration.ClientId,
                 ["grant_type"] = "authorization_code",
                 ["code"] = code,
-                ["redirect_uri"] = RedirectUri,
+                ["redirect_uri"] = configuration.RedirectUri,
                 ["code_verifier"] = pendingAuthorization.Verifier,
             }));
         var responseBody = await response.Content.ReadAsStringAsync();
@@ -114,12 +127,25 @@ public sealed class WindowsAuthClient
         CancellationToken cancellationToken = default)
     {
         var discovery = await GetDiscoveryAsync();
+        if (configuration.UsesSupabase)
+        {
+            var supabaseClient = new SupabaseProfileClient(
+                httpClient,
+                tokenStore,
+                configuration.ClientId,
+                new Uri(discovery.TokenEndpoint),
+                new Uri(configuration.SupabaseUrl!),
+                configuration.SupabasePublishableKey!,
+                clock);
+            return await supabaseClient.GetCurrentSessionAsync(cancellationToken);
+        }
+
         var client = new ProtectedSessionClient(
             httpClient,
             tokenStore,
-            ClientId,
+            configuration.ClientId,
             new Uri(discovery.TokenEndpoint),
-            new Uri($"{ApiBaseUrl}/api/v1/session"),
+            new Uri($"{configuration.Issuer.TrimEnd('/')}/api/v1/session"),
             clock);
         return await client.GetCurrentSessionAsync(cancellationToken);
     }
@@ -133,7 +159,7 @@ public sealed class WindowsAuthClient
     private async Task<DiscoveryDocument> GetDiscoveryAsync()
     {
         return await httpClient.GetFromJsonAsync<DiscoveryDocument>(
-            $"{ApiBaseUrl}/.well-known/openid-configuration") ??
+            $"{configuration.Issuer.TrimEnd('/')}/.well-known/openid-configuration") ??
             throw new InvalidOperationException("OIDC discovery returned no document.");
     }
 
