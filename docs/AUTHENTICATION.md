@@ -140,6 +140,11 @@ passkeys находятся в Beta и требуют отдельной про�
 
 ## Проверки
 
+Данные локального disposable smoke-аккаунта хранятся отдельно от Git в
+`.env.andivum.test.local`. Правила использования и минимальный сценарий
+проверки описаны в [`docs/TESTING.md`](TESTING.md); реальные значения нельзя
+выводить в логи или сообщения.
+
 ```powershell
 pnpm doctor
 pnpm check
