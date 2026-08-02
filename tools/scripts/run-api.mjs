@@ -13,6 +13,7 @@ const fileEnvironment = existsSync(envFile)
   ? loadDotEnv(readFileSync(envFile, "utf8"))
   : {};
 const environment = { ...fileEnvironment, ...process.env };
+environment.ASPNETCORE_ENVIRONMENT ??= "Development";
 
 if (!environment.ConnectionStrings__Postgres) {
   const connectionString = buildPostgresConnectionString(environment);

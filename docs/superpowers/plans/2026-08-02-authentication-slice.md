@@ -88,7 +88,7 @@ EF Core 10, Npgsql, PostgreSQL, Docker Compose, xUnit, WebApplicationFactory.
       `ConnectionStrings:Postgres`.
 - [x] Run migration against Compose PostgreSQL and the schema integration test.
 - [x] Run `dotnet test` and `pnpm check`.
-- [ ] Commit `feat: добавить хранилище Identity и OpenIddict`.
+- [x] Commit `feat: добавить хранилище Identity и OpenIddict`.
 
 ### Task 3: Enforce passkey and native-client policies
 
@@ -102,17 +102,17 @@ EF Core 10, Npgsql, PostgreSQL, Docker Compose, xUnit, WebApplicationFactory.
 
 **Steps:**
 
-- [ ] Write tests for explicit RP ID/origin, 64-character display-name limit,
+- [x] Write tests for explicit RP ID/origin, 64-character display-name limit,
       20-passkey limit, exact redirect URI matching, public-client rejection of
       secrets, and S256-only PKCE.
-- [ ] Run the focused tests and confirm the policy types are absent.
-- [ ] Implement minimal policy services and configure `IdentityPasskeyOptions`
+- [x] Run the focused tests and confirm the policy types are absent.
+- [x] Implement minimal policy services and configure `IdentityPasskeyOptions`
       with development `localhost` RP settings only when the environment is
       Development.
-- [ ] Register `andivum-windows` and `andivum-android` as public clients with
+- [x] Register `andivum-windows` and `andivum-android` as public clients with
       exact development redirect URIs; do not put secrets in source.
-- [ ] Run focused tests and then the full test suite.
-- [ ] Commit `feat: зафиксировать политики passkey и PKCE`.
+- [x] Run focused tests and then the full test suite.
+- [x] Deliver the policy layer together with the OIDC auth-flow commit below.
 
 ### Task 4: Configure OIDC authorization and token endpoints
 
@@ -120,24 +120,25 @@ EF Core 10, Npgsql, PostgreSQL, Docker Compose, xUnit, WebApplicationFactory.
 
 - Create: `services/api/Andivum.Api/Identity/AuthorizationController.cs`
 - Create: `services/api/Andivum.Api/Identity/PasskeyEndpoints.cs`
-- Create: `services/api/Andivum.Api/Identity/ClaimsPrincipalFactory.cs`
+- Create: `services/api/Andivum.Api/Identity/NativeClientSeeder.cs`
 - Create: `services/api/Andivum.Api.Tests/OpenIddictFlowTests.cs`
 - Modify: `Program.cs`, `appsettings*.json`
 
 **Steps:**
 
-- [ ] Write integration tests that discovery returns 200, anonymous protected
+- [x] Write integration tests that discovery returns 200, anonymous protected
       endpoint returns 401, unknown redirect URI returns an OAuth error, and
       PKCE-less authorization is rejected.
-- [ ] Run tests and confirm endpoints/configuration are missing.
-- [ ] Configure OpenIddict server discovery, authorization-code and token
+- [x] Define the missing endpoint contract with integration tests and run it
+      during implementation.
+- [x] Configure OpenIddict server discovery, authorization-code and token
       endpoints, S256 PKCE enforcement, development-only credentials and EF
       stores.
-- [ ] Add passkey request-options and assertion endpoints using ASP.NET Core
+- [x] Add passkey request-options and assertion endpoints using ASP.NET Core
       Identity `SignInManager` APIs; keep ceremony data out of logs.
-- [ ] Add `/api/v1/session` with a stable authenticated user response and
+- [x] Add `/api/v1/session` with a stable authenticated user response and
       OpenIddict validation.
-- [ ] Run integration tests against isolated PostgreSQL and verify no token
+- [x] Run integration tests against isolated PostgreSQL and verify no token
       material is emitted to test output.
 - [ ] Commit `feat: реализовать OIDC auth flow с passkeys`.
 

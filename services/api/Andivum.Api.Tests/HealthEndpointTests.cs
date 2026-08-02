@@ -16,6 +16,7 @@ public sealed class HealthEndpointTests
                 builder.UseSetting(
                     "ConnectionStrings:Postgres",
                     "Host=localhost;Port=5432;Database=andivum_dev;Username=andivum_dev");
+                builder.UseSetting("Database:AutoMigrate", "false");
             });
         using var _client = factory.CreateClient();
 
