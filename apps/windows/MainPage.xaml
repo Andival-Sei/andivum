@@ -86,21 +86,27 @@
         <Grid x:Name="DashboardSurface" Visibility="{x:Bind ViewModel.DashboardVisibility, Mode=OneWay}">
             <Grid ColumnDefinitions="220,*" ColumnSpacing="32">
                 <NavigationView
+                    x:Name="DashboardNavigationView"
                     Grid.Column="0"
                     IsBackButtonVisible="Collapsed"
                     IsPaneOpen="True"
                     IsSettingsVisible="False"
                     PaneDisplayMode="Left"
-                    SelectedItem="{x:Bind OverviewNavigationItem}">
+                    SelectedItem="{x:Bind OverviewNavigationItem}"
+                    SelectionChanged="OnNavigationSelectionChanged">
                     <NavigationView.MenuItems>
                         <NavigationViewItem x:Name="OverviewNavigationItem" x:Uid="NavigationOverview" />
                         <NavigationViewItem x:Uid="NavigationTasks" IsEnabled="False" />
-                        <NavigationViewItem x:Uid="NavigationFinance" IsEnabled="False" />
+                        <NavigationViewItem x:Name="FinanceNavigationItem" x:Uid="NavigationFinance" />
                     </NavigationView.MenuItems>
                 </NavigationView>
 
                 <ScrollViewer Grid.Column="1" HorizontalScrollBarVisibility="Disabled">
-                    <StackPanel MaxWidth="920" Spacing="24">
+                    <Grid MaxWidth="920">
+                        <StackPanel
+                            x:Name="OverviewSurface"
+                            Spacing="24"
+                            Visibility="{x:Bind ViewModel.OverviewVisibility, Mode=OneWay}">
                         <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
                             <StackPanel Spacing="4">
                                 <TextBlock x:Uid="DashboardEyebrow" Style="{StaticResource CaptionTextBlockStyle}" />
@@ -160,7 +166,130 @@
                                 </StackPanel>
                             </Border>
                         </Grid>
-                    </StackPanel>
+                        </StackPanel>
+
+                        <StackPanel x:Name="FinanceSurface" Spacing="24" Visibility="{x:Bind ViewModel.FinanceVisibility, Mode=OneWay}">
+                            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
+                                <StackPanel Spacing="4">
+                                    <TextBlock x:Uid="FinanceEyebrow" Style="{StaticResource CaptionTextBlockStyle}" />
+                                    <TextBlock x:Uid="FinanceTitle" FontSize="38" FontWeight="SemiBold" />
+                                </StackPanel>
+                                <Button
+                                    Grid.Column="1"
+                                    x:Uid="FinanceImportButton"
+                                    Click="OnImportFinanceDocument"
+                                    IsEnabled="{x:Bind ViewModel.IsFinanceActionEnabled, Mode=OneWay}" />
+                                <Button
+                                    Grid.Column="2"
+                                    x:Uid="FinanceSaveButton"
+                                    Command="{x:Bind ViewModel.SaveFinanceTransactionCommand}"
+                                    IsEnabled="{x:Bind ViewModel.IsFinanceActionEnabled, Mode=OneWay}" />
+                            </Grid>
+
+                            <Border
+                                Padding="24"
+                                CornerRadius="22"
+                                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                BorderThickness="1">
+                                <StackPanel Spacing="12">
+                                    <TextBlock x:Uid="FinanceNewTransaction" FontSize="22" FontWeight="SemiBold" />
+                                    <TextBox
+                                        x:Uid="FinanceTitleBox"
+                                        Text="{x:Bind ViewModel.FinanceTitle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                    <ComboBox
+                                        x:Uid="FinanceTypeBox"
+                                        SelectedValue="{x:Bind ViewModel.FinanceTransactionType, Mode=TwoWay}"
+                                        SelectedValuePath="Tag">
+                                        <ComboBoxItem x:Uid="FinanceExpenseOption" Tag="expense" />
+                                        <ComboBoxItem x:Uid="FinanceIncomeOption" Tag="income" />
+                                    </ComboBox>
+                                    <TextBox
+                                        x:Uid="FinanceTotalBox"
+                                        Text="{x:Bind ViewModel.FinanceTotalAmount, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBox
+                                        x:Uid="FinanceDateBox"
+                                        Text="{x:Bind ViewModel.FinanceOccurredOn, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                    <ComboBox
+                                        x:Uid="FinanceAccountBox"
+                                        ItemsSource="{x:Bind ViewModel.FinanceAccounts, Mode=OneWay}"
+                                        DisplayMemberPath="Name"
+                                        SelectedValuePath="Id"
+                                        SelectedValue="{x:Bind ViewModel.FinanceAccountId, Mode=TwoWay}" />
+                                </StackPanel>
+                            </Border>
+
+                            <TextBlock x:Uid="FinanceItemsLabel" FontSize="22" FontWeight="SemiBold" />
+                            <ItemsControl ItemsSource="{x:Bind ViewModel.FinanceDraftItems, Mode=OneWay}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border
+                                            Margin="0,0,0,10"
+                                            Padding="16"
+                                            CornerRadius="16"
+                                            Background="{ThemeResource SubtleFillColorTransparentBrush}"
+                                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                            BorderThickness="1">
+                                            <Grid ColumnDefinitions="*,160,220" ColumnSpacing="10">
+                                                <TextBox
+                                                    x:Uid="FinanceItemNameBox"
+                                                    Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                <TextBox
+                                                    Grid.Column="1"
+                                                    x:Uid="FinanceItemAmountBox"
+                                                    Text="{Binding LineTotalText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                <ComboBox
+                                                    Grid.Column="2"
+                                                    x:Uid="FinanceItemCategoryBox"
+                                                    ItemsSource="{Binding CategoryChoices}"
+                                                    DisplayMemberPath="Name"
+                                                    SelectedValuePath="Slug"
+                                                    SelectedValue="{Binding CategorySlug, Mode=TwoWay}" />
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <Button
+                                x:Uid="FinanceAddItemButton"
+                                Command="{x:Bind ViewModel.AddDraftItemCommand}"
+                                HorizontalAlignment="Left" />
+                            <TextBlock
+                                Text="{x:Bind ViewModel.FinanceStatus, Mode=OneWay}"
+                                Style="{StaticResource CaptionTextBlockStyle}"
+                                TextWrapping="Wrap" />
+
+                            <Border
+                                Padding="24"
+                                CornerRadius="22"
+                                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                BorderThickness="1">
+                                <StackPanel Spacing="10">
+                                    <TextBlock x:Uid="FinanceAiSettings" FontSize="22" FontWeight="SemiBold" />
+                                    <TextBlock x:Uid="FinanceAiDescription" Style="{StaticResource BodyTextBlockStyle}" TextWrapping="Wrap" />
+                                    <PasswordBox x:Name="GeminiApiKeyBox" x:Uid="FinanceGeminiKeyBox" />
+                                    <Button x:Uid="FinanceSaveKeyButton" Click="OnSaveGeminiKey" HorizontalAlignment="Left" />
+                                </StackPanel>
+                            </Border>
+
+                            <TextBlock x:Uid="FinanceRecentTitle" FontSize="22" FontWeight="SemiBold" />
+                            <ListView ItemsSource="{x:Bind ViewModel.FinanceTransactions, Mode=OneWay}">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="12" Padding="4">
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding Title}" FontWeight="SemiBold" />
+                                                <TextBlock Text="{Binding OccurredOn}" Style="{StaticResource CaptionTextBlockStyle}" />
+                                            </StackPanel>
+                                            <TextBlock Grid.Column="1" Text="{Binding Type}" VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="2" Text="{Binding DisplayTotal}" VerticalAlignment="Center" FontWeight="SemiBold" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                        </StackPanel>
+                    </Grid>
                 </ScrollViewer>
             </Grid>
         </Grid>

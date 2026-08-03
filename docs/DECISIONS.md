@@ -16,6 +16,7 @@
 | [0012](adr/0012-email-password-authentication.md) | Email/password через OIDC browser auth | Заменён 0013 и 0014 |
 | [0013](adr/0013-auth0-supabase-managed-mvp.md) | Auth0 + Supabase для облачного MVP | Заменён 0014 |
 | [0014](adr/0014-supabase-auth-native.md) | Supabase Auth как единственный identity provider | Принято |
+| [0015](adr/0015-finance-module-data-and-import.md) | Строки транзакций, дерево категорий и безопасный импорт | Принято |
 
 ## Открытые решения
 

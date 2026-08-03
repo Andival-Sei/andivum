@@ -34,4 +34,26 @@
   <data name="AuthStatusVerified"><value>Сервер подтвердил ваш аккаунт.</value></data>
   <data name="AuthStatusSessionUnavailable"><value>Сервер не смог подтвердить эту сессию. Войдите снова, когда будете онлайн.</value></data>
   <data name="AuthStatusSettingsUnavailable"><value>Настройки аккаунта подключим после настройки облачной авторизации.</value></data>
+  <data name="FinanceEyebrow.Text"><value>Деньги с понятным контекстом</value></data>
+  <data name="FinanceTitle.Text"><value>Финансы</value></data>
+  <data name="FinanceImportButton.Content"><value>Импортировать</value></data>
+  <data name="FinanceSaveButton.Content"><value>Сохранить операцию</value></data>
+  <data name="FinanceNewTransaction.Text"><value>Новая операция</value></data>
+  <data name="FinanceTitleBox.Header"><value>Название операции</value></data>
+  <data name="FinanceTypeBox.Header"><value>Тип</value></data>
+  <data name="FinanceExpenseOption.Content"><value>Расход</value></data>
+  <data name="FinanceIncomeOption.Content"><value>Доход</value></data>
+  <data name="FinanceTotalBox.Header"><value>Итого</value></data>
+  <data name="FinanceDateBox.Header"><value>Дата (ГГГГ-ММ-ДД)</value></data>
+  <data name="FinanceAccountBox.Header"><value>Счёт</value></data>
+  <data name="FinanceItemsLabel.Text"><value>Позиции</value></data>
+  <data name="FinanceAddItemButton.Content"><value>Добавить позицию</value></data>
+  <data name="FinanceAiSettings.Text"><value>Настройки импорта через AI</value></data>
+  <data name="FinanceAiDescription.Text"><value>Gemini может прочитать фото или PDF и подготовить редактируемый черновик. Ключ хранится только в защищённом хранилище Windows.</value></data>
+  <data name="FinanceGeminiKeyBox.Header"><value>API-ключ Gemini</value></data>
+  <data name="FinanceSaveKeyButton.Content"><value>Сохранить ключ</value></data>
+  <data name="FinanceRecentTitle.Text"><value>Последние операции</value></data>
+  <data name="FinanceItemNameBox.Header"><value>Название позиции</value></data>
+  <data name="FinanceItemAmountBox.Header"><value>Сумма</value></data>
+  <data name="FinanceItemCategoryBox.Header"><value>Категория</value></data>
 </root>

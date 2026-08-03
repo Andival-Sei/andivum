@@ -20,6 +20,11 @@
     <Compile Include="..\windows\Auth\AuthConfiguration.cs" Link="Auth\AuthConfiguration.cs" />
     <Compile Include="..\windows\Auth\SupabaseProfileClient.cs" Link="Auth\SupabaseProfileClient.cs" />
     <Compile Include="..\windows\Auth\SupabaseAuthClient.cs" Link="Auth\SupabaseAuthClient.cs" />
+    <Compile Include="..\windows\Finance\FinanceModels.cs" Link="Finance\FinanceModels.cs" />
+    <Compile Include="..\windows\Finance\FinanceJson.cs" Link="Finance\FinanceJson.cs" />
+    <Compile Include="..\windows\Finance\FinanceClient.cs" Link="Finance\FinanceClient.cs" />
+    <Compile Include="..\windows\Finance\FinanceTextImport.cs" Link="Finance\FinanceTextImport.cs" />
+    <Compile Include="..\windows\Finance\GeminiReceiptParser.cs" Link="Finance\GeminiReceiptParser.cs" />
   </ItemGroup>
 
 </Project>

@@ -16,6 +16,8 @@ class AuthManager(context: Context) {
 
     fun isSignedIn(): Boolean = client.currentSession() != null
 
+    fun currentAccessToken(): String? = client.currentSession()?.accessToken
+
     fun signIn(
         email: String,
         password: String,

@@ -34,4 +34,26 @@
   <data name="AuthStatusVerified"><value>Your account is verified by the server.</value></data>
   <data name="AuthStatusSessionUnavailable"><value>The server could not verify this session. Please sign in again when you are online.</value></data>
   <data name="AuthStatusSettingsUnavailable"><value>Account settings will be connected after the cloud identity setup.</value></data>
+  <data name="FinanceEyebrow.Text"><value>Money, with context</value></data>
+  <data name="FinanceTitle.Text"><value>Finance</value></data>
+  <data name="FinanceImportButton.Content"><value>Import</value></data>
+  <data name="FinanceSaveButton.Content"><value>Save transaction</value></data>
+  <data name="FinanceNewTransaction.Text"><value>New transaction</value></data>
+  <data name="FinanceTitleBox.Header"><value>Transaction name</value></data>
+  <data name="FinanceTypeBox.Header"><value>Type</value></data>
+  <data name="FinanceExpenseOption.Content"><value>Expense</value></data>
+  <data name="FinanceIncomeOption.Content"><value>Income</value></data>
+  <data name="FinanceTotalBox.Header"><value>Total</value></data>
+  <data name="FinanceDateBox.Header"><value>Date (YYYY-MM-DD)</value></data>
+  <data name="FinanceAccountBox.Header"><value>Account</value></data>
+  <data name="FinanceItemsLabel.Text"><value>Items</value></data>
+  <data name="FinanceAddItemButton.Content"><value>Add item</value></data>
+  <data name="FinanceAiSettings.Text"><value>AI import settings</value></data>
+  <data name="FinanceAiDescription.Text"><value>Gemini can read a photo or PDF and prepare an editable draft. The key is stored only in the Windows secure vault.</value></data>
+  <data name="FinanceGeminiKeyBox.Header"><value>Gemini API key</value></data>
+  <data name="FinanceSaveKeyButton.Content"><value>Save key</value></data>
+  <data name="FinanceRecentTitle.Text"><value>Recent transactions</value></data>
+  <data name="FinanceItemNameBox.Header"><value>Item name</value></data>
+  <data name="FinanceItemAmountBox.Header"><value>Amount</value></data>
+  <data name="FinanceItemCategoryBox.Header"><value>Category</value></data>
 </root>
